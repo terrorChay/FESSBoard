@@ -16,7 +16,7 @@ def run_query(query):
 # Настройка
 def init():
     # Настройка страницы
-    st.set_page_config(layout='wide', page_title='Ilya Matyushin')
+    st.set_page_config(layout='wide', page_title='FESSBoard')
 
     # Подгрузка бибилотеки цветных градиентов
     global colorscales
