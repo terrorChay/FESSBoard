@@ -9,7 +9,7 @@ footer {
     padding: 5% 5% 5% 10%;
     border-radius: 5px;
     justify-content: center;
-}
+} 
 
 /* Лейбл метрики */
 [data-testid="stMetricLabel"] > div:nth-child(1) {
