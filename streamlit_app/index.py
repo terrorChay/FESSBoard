@@ -23,9 +23,12 @@ def init():
     colorscales = px.colors.named_colorscales()
 
     # Импорт CSS стилей
-    # На локалке нужно поменять путь к файлу на 'styles.css'
-    with open('/app/fessboard/streamlit_app/styles.css', 'r') as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    try: # Local launch
+        with open('/app/fessboard/streamlit_app/styles.css', 'r') as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError: # Streamlit Cloud
+        with open('styles.css', 'r') as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
     # Парсинг датафрейма из гугл таблиц
     global df
