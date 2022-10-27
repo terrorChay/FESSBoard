@@ -24,10 +24,6 @@ sharingMode = "off"
 # Default: true
 showWarningOnDirectExecution = true
 
-# Level of logging: 'error', 'warning', 'info', or 'debug'.
-# Default: 'info'
-logLevel = "debug"
-
 
 [client]
 
