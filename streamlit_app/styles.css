@@ -15,7 +15,7 @@ footer {
 [data-testid="stMetricLabel"] > div:nth-child(1) {
     justify-content: center;
     text-transform: uppercase;
-    font-weight: bold;
+    font-weight: 500;
 }
 
 /* Значение метрики */
