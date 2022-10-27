@@ -14,6 +14,8 @@ footer {
 /* Лейбл метрики */
 [data-testid="stMetricLabel"] > div:nth-child(1) {
     justify-content: center;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
 /* Значение метрики */
