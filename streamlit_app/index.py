@@ -15,14 +15,15 @@ def run_query(query):
 
 # Настройка
 def init():
-    # Настройка страницы
+    # Настройки страницы
     st.set_page_config(layout='wide', page_title='FESSBoard')
 
-    # Подгрузка бибилотеки цветных градиентов
+    # Импорт градиентов
     global colorscales
     colorscales = px.colors.named_colorscales()
 
-    # Подгрузка кастомных стилей
+    # Импорт CSS стилей
+    # На локалке нужно поменять путь к файлу на 'styles.css'
     with open('/app/fessboard/streamlit_app/styles.css', 'r') as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
@@ -52,9 +53,9 @@ def myDonut(values, names, title=None, hovertemplate='<b>%{label}<br>Проце�
                         showlegend = bLegend)
     st.plotly_chart(fig, use_container_width = True)
 
-# Запуск всего на свете
+# Запуск приложения
 def run():
-    # Настройки
+    # Запускаем настройки
     init()
 
     # Обработка датафрейма 
@@ -68,7 +69,7 @@ def run():
     sph_names = sph_df.columns.to_list()
     sph_values = sph_df.values[0]
 
-    # Метрики
+    # Контейнер с метриками и логотипом
     with st.container():
         col1, col2, col3, col4 = st.columns(4)
         col1.image('https://fesn.ranepa.ru/img/fesn-logo.png')
@@ -76,7 +77,7 @@ def run():
         col3.metric("Партнеры", "45", "-15%")
         col4.metric("Участники", "хз", "1337%")
 
-    # Пай чарты
+    # Контейнер с пай чартами
     with st.container():
         col1, col2 = st.columns(2)
         with col1:
@@ -92,7 +93,7 @@ def run():
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
                         center_text     = f'<b>{len(sph_names)}<br>сфер</b>')
     
-    # Таблица
+    # Контейнер с таблицей
     with st.container():
         st.dataframe(df)
                 
