@@ -23,7 +23,7 @@ def init():
     colorscales = px.colors.named_colorscales()
 
     # Подгрузка кастомных стилей
-    with open('styles.css') as f:
+    with open('/app/fessboard/streamlit_app/styles.css', 'r') as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
     # Парсинг датафрейма из гугл таблиц
