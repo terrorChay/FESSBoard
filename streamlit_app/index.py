@@ -59,23 +59,28 @@ def run():
     init()
 
     # Обработка датафрейма 
+    ## Общее
+    df_unique_count = df.nunique()
     ## Расчеты для проектов
-    total_count = df.shape[0]
+    total_count = df_unique_count['ID']
     active_projects = df[df['Дата_окончания'].isna()]
     active_count = active_projects.shape[0]
     inactive_count = total_count - active_count
     ## Расчеты для сфер
     sph_df = pd.pivot_table(df, values = 'ID', columns ='Сфера_проекта', aggfunc ='count')
     sph_names = sph_df.columns.to_list()
+    sph_count = df_unique_count['Сфера_проекта']
     sph_values = sph_df.values[0]
+    ## Расчеты для партнеров
+    partners_count = df_unique_count['Компания']
 
     # Контейнер с метриками и логотипом
     with st.container():
         col1, col2, col3, col4 = st.columns(4)
         col1.image('https://fesn.ranepa.ru/img/fesn-logo.png')
-        col2.metric("Проекты", total_count, "10")
-        col3.metric("Партнеры", "45", "-15%")
-        col4.metric("Участники", "хз", "1337%")
+        col2.metric("Проектов", total_count)
+        col3.metric("Партнеров", partners_count)
+        col4.metric("Направлений", sph_count)
 
     # Контейнер с пай чартами
     with st.container():
