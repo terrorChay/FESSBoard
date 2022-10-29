@@ -89,11 +89,11 @@ def run():
                         values          = [active_count, inactive_count], 
                         names           = ['Активные', 'Завершенные'],
                         hovertemplate   = "<b>%{label} проекты</b><br>Процент: %{percent}",
-                        center_text     = f'<b>{inactive_count/total_count}%<br>завершено</b>')
+                        center_text     = f'<b>{round(100*(inactive_count/total_count))}%<br>завершено</b>')
             st.metric("Всего проектов", total_count)
         
         with col2:
-            pass
+            st.dataframe(df, use_container_width=True)
 
     # Контейнер направлений
     with tab2:
@@ -107,7 +107,7 @@ def run():
             st.metric("Всего направлений", sph_count)
         
         with col2:
-            st.dataframe(sph_df)
+            st.dataframe(sph_df, use_container_width=True)
         
     with tab3:
         col1, col2 = st.columns([1, 3])
@@ -120,11 +120,7 @@ def run():
             st.metric("Всего партнеров", partners_count)    
 
         with col2:
-            st.dataframe(partners_df)  
-    
-    # Контейнер с таблицей
-    with st.container():
-        st.dataframe(df)
+            st.dataframe(partners_df, use_container_width=True)  
                 
 if __name__ == '__main__':
     run()
