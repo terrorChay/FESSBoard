@@ -90,7 +90,7 @@ def run():
                         center_text     = f'<b>{total_count}<br>проектов</b>')
         
         with col2:
-            st.bar_chart(df)
+            pass
 
     # Контейнер направлений
     with tab2:
@@ -104,7 +104,7 @@ def run():
                         center_text     = f'<b>{len(sph_names)}<br>сфер</b>')
         
         with col2:
-            st.bar_chart(df)
+            st.bar_chart(sph_df)
         
     with tab3:
         col1, col2 = st.columns([1, 3])
@@ -112,7 +112,7 @@ def run():
             st.metric("Партнеров", partners_count)    
 
         with col2:
-            st.bar_chart(df)  
+            st.dataframe(df)  
     
     # Контейнер с таблицей
     with st.container():
