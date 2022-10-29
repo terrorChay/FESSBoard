@@ -75,19 +75,22 @@ def run():
     sph_count = df_unique_count['Сфера_проекта']
     sph_values = sph_df.values[0]
     ## Расчеты для партнеров
+    partners_df = pd.pivot_table(df, values = 'ID', columns ='Компания', aggfunc ='count')
+    partners_names = partners_df.columns.to_list()
     partners_count = df_unique_count['Компания']
+    partners_values = partners_df.values[0]
 
     tab1, tab2, tab3 = st.tabs(["Проекты", "Сферы", "Партнеры"])
     # Контейнер проектов
     with tab1:
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.metric("Проектов", total_count)
             myDonut(
                         values          = [active_count, inactive_count], 
                         names           = ['Активные', 'Завершенные'],
                         hovertemplate   = "<b>%{label} проекты</b><br>Процент: %{percent}",
-                        center_text     = f'<b>{total_count}<br>проектов</b>')
+                        center_text     = f'<b>{inactive_count/total_count}%<br>завершено</b>')
+            st.metric("Всего проектов", total_count)
         
         with col2:
             pass
@@ -96,23 +99,28 @@ def run():
     with tab2:
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.metric("Направлений", sph_count)
             myDonut(
                         values          = sph_values, 
                         names           = sph_names,
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
                         center_text     = f'<b>{len(sph_names)}<br>сфер</b>')
+            st.metric("Всего направлений", sph_count)
         
         with col2:
-            st.bar_chart(sph_df)
+            st.dataframe(sph_df)
         
     with tab3:
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.metric("Партнеров", partners_count)    
+            myDonut(
+                        values          = partners_values, 
+                        names           = partners_names,
+                        hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
+                        center_text     = f'<b>{len(partners_names)}<br>сфер</b>')
+            st.metric("Всего партнеров", partners_count)    
 
         with col2:
-            st.dataframe(df)  
+            st.dataframe(partners_df)  
     
     # Контейнер с таблицей
     with st.container():
