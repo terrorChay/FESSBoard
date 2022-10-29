@@ -77,29 +77,38 @@ def run():
     ## Расчеты для партнеров
     partners_count = df_unique_count['Компания']
 
-    # Контейнер с метриками и логотипом
+    # Контейнер проектов
     with st.container():
-        col1, col2, col3, col4 = st.columns(4)
-        col1.image('https://fesn.ranepa.ru/img/fesn-logo.png')
-        col2.metric("Проектов", total_count)
-        col3.metric("Партнеров", partners_count)
-        col4.metric("Направлений", sph_count)
-
-    # Контейнер с пай чартами
-    with st.container():
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns([1, 3])
         with col1:
+            st.metric("Проектов", total_count)
             myDonut(
                         values          = [active_count, inactive_count], 
                         names           = ['Активные', 'Завершенные'],
                         hovertemplate   = "<b>%{label} проекты</b><br>Процент: %{percent}",
                         center_text     = f'<b>{total_count}<br>проектов</b>')
+        
         with col2:
+            pass
+
+    # Контейнер направлений
+    with st.container():
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.metric("Направлений", sph_count)
             myDonut(
                         values          = sph_values, 
                         names           = sph_names,
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
                         center_text     = f'<b>{len(sph_names)}<br>сфер</b>')
+        
+        with col2:
+            pass
+        
+    with st.container():
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.metric("Партнеров", partners_count)      
     
     # Контейнер с таблицей
     with st.container():
