@@ -85,12 +85,12 @@ def run():
     with tab1:
         col1, col2 = st.columns([1, 3])
         with col1:
+            st.metric("Всего проектов", total_count)
             myDonut(
                         values          = [active_count, inactive_count], 
                         names           = ['Активные', 'Завершенные'],
                         hovertemplate   = "<b>%{label} проекты</b><br>Процент: %{percent}",
                         center_text     = f'<b>{round(100*(inactive_count/total_count))}%<br>завершено</b>')
-            st.metric("Всего проектов", total_count)
         
         with col2:
             st.dataframe(df, use_container_width=True)
@@ -99,12 +99,12 @@ def run():
     with tab2:
         col1, col2 = st.columns([1, 3])
         with col1:
+            st.metric("Всего направлений", sph_count)
             myDonut(
                         values          = sph_values, 
                         names           = sph_names,
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
                         center_text     = f'<b>{len(sph_names)}<br>сфер</b>')
-            st.metric("Всего направлений", sph_count)
         
         with col2:
             st.dataframe(sph_df, use_container_width=True)
@@ -112,12 +112,13 @@ def run():
     with tab3:
         col1, col2 = st.columns([1, 3])
         with col1:
+            st.metric("Всего партнеров", partners_count)
             myDonut(
                         values          = partners_values, 
                         names           = partners_names,
+                        textinfo        = None,
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
-                        center_text     = f'<b>{len(partners_names)}<br>сфер</b>')
-            st.metric("Всего партнеров", partners_count)    
+                        center_text     = f'<b>{len(partners_names)}<br>сфер</b>')   
 
         with col2:
             st.dataframe(partners_df, use_container_width=True)  
