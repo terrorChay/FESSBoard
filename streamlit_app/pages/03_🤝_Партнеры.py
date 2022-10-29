@@ -1,5 +1,5 @@
 import streamlit as st
 
 st.markdown("""
-# Страница 1
+# Карточка партнера
 """)
