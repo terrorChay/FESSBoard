@@ -77,8 +77,9 @@ def run():
     ## Расчеты для партнеров
     partners_count = df_unique_count['Компания']
 
+    tab1, tab2, tab3 = st.tabs(["Проекты", "Сферы", "Партнеры"])
     # Контейнер проектов
-    with st.container():
+    with tab1:
         col1, col2 = st.columns([1, 3])
         with col1:
             st.metric("Проектов", total_count)
@@ -92,7 +93,7 @@ def run():
             pass
 
     # Контейнер направлений
-    with st.container():
+    with tab2:
         col1, col2 = st.columns([1, 3])
         with col1:
             st.metric("Направлений", sph_count)
@@ -105,7 +106,7 @@ def run():
         with col2:
             pass
         
-    with st.container():
+    with tab3:
         col1, col2 = st.columns([1, 3])
         with col1:
             st.metric("Партнеров", partners_count)      
