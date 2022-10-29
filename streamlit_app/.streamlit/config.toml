@@ -44,4 +44,4 @@ runOnSave = true
 
 # The port where the server will listen for client and browser connections.
 # Default: 8501
-port = 8501
+port = 443
