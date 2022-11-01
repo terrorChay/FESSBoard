@@ -93,7 +93,7 @@ def run():
                         center_text     = f'<b>{round(100*(inactive_count/total_count))}%<br>завершено</b>')
         
         with col2:
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df)
 
     # Контейнер направлений
     with tab2:
@@ -107,21 +107,16 @@ def run():
                         center_text     = f'<b>{len(sph_names)}<br>сфер</b>')
         
         with col2:
-            st.dataframe(sph_df, use_container_width=True)
+            st.dataframe(sph_df)
         
     with tab3:
         col1, col2 = st.columns([1, 3])
         with col1:
             st.metric("Всего партнеров", partners_count)
-            myDonut(
-                        values          = partners_values, 
-                        names           = partners_names,
-                        textinfo        = None,
-                        hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
-                        center_text     = f'<b>{len(partners_names)}<br>сфер</b>')   
 
         with col2:
-            st.dataframe(partners_df, use_container_width=True)  
+            fig = px.bar(partners_df.T, orientation='h', )  
+            st.plotly_chart(fig, use_container_width=True) 
                 
 if __name__ == '__main__':
     run()
