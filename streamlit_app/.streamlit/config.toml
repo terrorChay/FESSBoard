@@ -15,11 +15,6 @@ font="sans serif"
 # Default: false
 disableWatchdogWarning = false
 
-# Configure the ability to share apps to the cloud.
-# Should be set to one of these values: - "off" : turn off sharing. - "s3" : share to S3, based on the settings under the [s3] section of this config file.
-# Default: "off"
-sharingMode = "off"
-
 
 [client]
 
