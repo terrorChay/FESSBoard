@@ -26,7 +26,7 @@ def main():
             { "id": "Не Илья", "label": "не Илья", "value": 366, "color": "hsl(286, 70%, 50%)" }
         ]
         with w.dashboard(rowHeight=57):
-            w.pie(DEFAULT_DATA),
+            w.pie(DEFAULT_DATA)
             w.card("Илья умер в попытках познать Material UI. Его спас добрый самаритянин, который интегрировал его со стримлитом и разместил на гитхабе примеры.")
 
 if __name__ == "__main__":
