@@ -18,15 +18,8 @@ def main():
         card=Card(board, 0, 0, 3, 8, minW=2, minH=4, isResizable=False)
     )
     with elements("kek"):
-        DEFAULT_DATA = [
-            { "id": "Илюха", "label": "Илюха", "value": 465, "color": "hsl(128, 70%, 50%)" },
-            { "id": "Миша", "label": "Миша", "value": 140, "color": "hsl(178, 70%, 50%)" },
-            { "id": "Иванов", "label": "Иванов", "value": 40, "color": "hsl(322, 70%, 50%)" },
-            { "id": "Тот парень", "label": "Он самый", "value": 439, "color": "hsl(117, 70%, 50%)" },
-            { "id": "Не Илья", "label": "не Илья", "value": 366, "color": "hsl(286, 70%, 50%)" }
-        ]
         with w.dashboard(rowHeight=57):
-            w.pie(DEFAULT_DATA)
+            w.pie('')
             w.card("Илья умер в попытках познать Material UI. Его спас добрый самаритянин, который интегрировал его со стримлитом и разместил на гитхабе примеры.")
 
 if __name__ == "__main__":
