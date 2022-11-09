@@ -9,7 +9,7 @@ sys.path.append(parentdir)
 from elems import Dashboard, Pie, Card, Metric
 
 def main():
-    st.title('Илюха флексит на реакте')
+    st.title('Илюхины гигачад метрики')
     board = Dashboard()
     w = SimpleNamespace(
         dashboard=board,
@@ -29,7 +29,12 @@ def main():
             w.metric_2(1337, "-18%", postfix='от вчерашнего', label='Нельзя ресайзить')
             w.metric_3("AVON", "Новый", postfix='клиент', label='Можно только вниз')
             w.metric_4(-666, "+18%", postfix='от прошлого месяца', label='Двигать нельзя')
-    st.title('lol kek cheburek')
+    st.title('Стримлитовские метрики')
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric('Тест', 228,'-5%')
+    col2.metric('Тест', 228,'-5%')
+    col3.metric('Тест', 228,'-5%')
+    col4.metric('Тест', 228,'-5%')
 if __name__ == "__main__":
     st.set_page_config(layout="wide")
     main()
