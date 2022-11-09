@@ -14,6 +14,14 @@ class Pie(Dashboard.Item):
         { "id": "elixir", "label": "elixir", "value": 366, "color": "hsl(286, 70%, 50%)" }
     ]
 
+    DEFAULT_FILL = [
+                        { "match": { "id": "java" }, "id": "dots" },
+                        { "match": { "id": "rust" }, "id": "dots" },
+                        { "match": { "id": "scalar" }, "id": "dots" },
+                        { "match": { "id": "ruby" }, "id": "dots" },
+                        { "match": { "id": "elixir" }, "id": "lines" }
+                    ]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._theme = {
@@ -39,7 +47,7 @@ class Pie(Dashboard.Item):
             }
         }
 
-    def __call__(self, import_data, title='Pie Chart Title'):
+    def __call__(self, import_data, title='Pie Chart Title', fills=DEFAULT_FILL):
         try:
             data = json.loads(import_data)
         except json.JSONDecodeError:
@@ -105,13 +113,7 @@ class Pie(Dashboard.Item):
                             "spacing": 10
                         }
                     ],
-                    fill=[
-                        { "match": { "id": "Илюха" }, "id": "dots" },
-                        { "match": { "id": "Миша" }, "id": "dots" },
-                        { "match": { "id": "Иванов" }, "id": "dots" },
-                        { "match": { "id": "Тот парень" }, "id": "dots" },
-                        { "match": { "id": "Не Илья" }, "id": "lines" }
-                    ],
+                    fill=fills,
                     legends=[
                         {
                             "anchor": "bottom",
