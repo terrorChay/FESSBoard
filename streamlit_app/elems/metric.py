@@ -15,7 +15,6 @@ class Metric(Dashboard.Item):
                                     "justify-content":"space-between",
                                     "borderRadius": 3, 
                                     "padding": "16px", 
-                                    "padding-bottom": "24px",
                                     "overflow": "hidden"}, elevation=1, className=self._draggable_class):
 
             mui.Typography(label, sx={"letter-spacing":"-0.04px"})
