@@ -15,12 +15,12 @@ class Pie(Dashboard.Item):
     ]
 
     DEFAULT_FILL = [
-                        { "match": { "id": "java" }, "id": "dots" },
-                        { "match": { "id": "rust" }, "id": "dots" },
-                        { "match": { "id": "scalar" }, "id": "dots" },
-                        { "match": { "id": "ruby" }, "id": "dots" },
-                        { "match": { "id": "elixir" }, "id": "lines" }
-                    ]
+        { "match": { "id": "java" }, "id": "dots" },
+        { "match": { "id": "rust" }, "id": "dots" },
+        { "match": { "id": "scalar" }, "id": "dots" },
+        { "match": { "id": "ruby" }, "id": "dots" },
+        { "match": { "id": "elixir" }, "id": "lines" }
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
