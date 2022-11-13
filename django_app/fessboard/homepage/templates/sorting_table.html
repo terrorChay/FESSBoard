@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> Table Example </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+            body {
+                padding-top: 50px;
+                padding-bottom: 20px;
+            }
+        </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">
+    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
+</head>
+<body>
+<div class="container" style="width:40%" ;>
+    <h2> Bootstrap Sort Table </h2>
+    <table class="table table-striped table-bordered    " id="sortTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Gender</th>
+            <th>Ever Married</th>
+            <th>Age</th>
+            <th>Graduated</th>
+            <th>Profession</th>
+            <th>Work Experience</th>
+            <th>Spending Score</th>
+            <th>Family Size</th>
+            <th>Var_1</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in projects %}
+            <tr>
+                <td>{{ item.ID }}</td>
+                <td>{{ item.gender }}</td>
+                <td>{{ item.ever_married }}</td>
+                <td>{{ item.age }}</td>
+                <td>{{ item.graduated }}</td>
+                <td>{{ item.profession }}</td>
+                <td>{{ item.work_experience }}</td>
+                <td>{{ item.spending_score }}</td>
+                <td>{{ item.family_size }}</td>
+                <td>{{ item.var_1 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    $('#sortTable').DataTable();
+</script>
+</body>
+</html>
+
+    <div class="mb-3">
+        <label for="{{ form.company_type }}" class="col-sm-2 col-form-label"> Тип организации:</label>
+        {{ form.company_type }}
+    </div>
+    <div class="mb-3">
+        <label for="{{ form.company_sphere }}" class="col-sm-2 col-form-label"> Сфера организации:</label>
+        {{ form.company_sphere }}
+    </div>
+    <div class="mb-3">
+        <label for="{{ form.company_website }}" class="col-sm-2 col-form-label"> Вебсайт организации:</label>
+        {{ form.company_website }}
+    </div>
