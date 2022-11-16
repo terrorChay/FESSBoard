@@ -1,7 +1,12 @@
 from django import forms
 from .models import Companies
 
+
 class CompaniesForm(forms.ModelForm):
+    #company_type = Companies.objects.distinct('company_type')
+    #company_sphere = Companies.objects.distinct('company_sphere')
+    #type_args = [company_type, company_sphere]
+
     class Meta:
         model = Companies
         fields = '__all__'

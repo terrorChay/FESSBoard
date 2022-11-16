@@ -105,7 +105,7 @@ class Students(models.Model):
     master_start_year = models.TextField(blank=True, null=True)  # This field type is a guess.
     student_status = models.CharField(max_length=20)
     bachelors_university = models.ForeignKey('Universities', models.DO_NOTHING, db_column='bachelors_university', blank=True, null=True)
-    masters_university = models.ForeignKey('Universities', models.DO_NOTHING, db_column='masters_university', blank=True, null=True)
+    masters_university = models.ForeignKey('Universities', models.DO_NOTHING, related_name='mast_uni', db_column='masters_university', blank=True, null=True)
 
     class Meta:
         managed = False
