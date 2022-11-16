@@ -30,14 +30,6 @@ def init():
         with open('styles.css', 'r') as f:
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-    # Парсинг датафрейма из гугл таблиц
-    global df
-    global list_of_headers
-    sheet_url = 'https://docs.google.com/spreadsheets/d/1W_mPyvhZHNZeSo00g0ewu5F1YLjXCtdhNFQqfzBS1I0/edit?usp=sharing'
-    query = f'SELECT * FROM "{sheet_url}"'
-    df = run_query(query)
-    list_of_headers = df.columns.values.tolist()
-
 # Донат пай чарт
 def myDonut(values, names, title=None, hovertemplate='<b>%{label}<br>Процент: %{percent}</b>', textinfo='value', font_size=20, center_text='', center_text_size=26, bLegend=False, theme=px.colors.sequential.RdBu):
     fig = px.pie(
@@ -54,14 +46,20 @@ def myDonut(values, names, title=None, hovertemplate='<b>%{label}<br>Проце�
                         annotations=[dict(text=center_text, x=0.5, y=0.5, font_size=center_text_size, showarrow=False)],
                         margin = dict(l=10, r=10),
                         showlegend = bLegend)
-    st.plotly_chart(fig, use_container_width = True)
+    return fig
 
 # Запуск приложения
 def run():
     # Запускаем настройки
     init()
 
-    # Обработка датафрейма 
+    # Тянем данные
+    sheet_url = 'https://docs.google.com/spreadsheets/d/1W_mPyvhZHNZeSo00g0ewu5F1YLjXCtdhNFQqfzBS1I0/edit?usp=sharing'
+    query = f'SELECT * FROM "{sheet_url}"'
+    df = run_query(query)
+    list_of_headers = df.columns.values.tolist()
+
+    # Обрабатываем данные 
     ## Общее
     df_unique_count = df.nunique()
     ## Расчеты для проектов
@@ -85,12 +83,14 @@ def run():
     with tab1:
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.metric("Всего проектов", total_count)
-            myDonut(
-                        values          = [active_count, inactive_count], 
-                        names           = ['Активные', 'Завершенные'],
-                        hovertemplate   = "<b>%{label} проекты</b><br>Процент: %{percent}",
-                        center_text     = f'<b>{round(100*(inactive_count/total_count))}%<br>завершено</b>')
+            with st.container():
+                st.metric("Всего проектов", total_count)
+                fig = myDonut(
+                            values          = [active_count, inactive_count], 
+                            names           = ['Активные', 'Завершенные'],
+                            hovertemplate   = "<b>%{label} проекты</b><br>Процент: %{percent}",
+                            center_text     = f'<b>{round(100*(inactive_count/total_count))}%<br>завершено</b>')
+                st.plotly_chart(fig, use_container_width = True)
         
         with col2:
             st.dataframe(df)
@@ -100,14 +100,15 @@ def run():
         col1, col2 = st.columns([1, 3])
         with col1:
             st.metric("Всего направлений", sph_count)
-            myDonut(
+            fig = myDonut(
                         values          = sph_values, 
                         names           = sph_names,
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
                         center_text     = f'<b>{len(sph_names)}<br>сфер</b>')
+            st.plotly_chart(fig, use_container_width = True)
         
         with col2:
-            st.dataframe(sph_df)
+            st.dataframe(sph_df, use_container_width=True)
         
     with tab3:
         col1, col2 = st.columns([1, 3])

@@ -5,7 +5,6 @@ footer {
 
 /* Контейнер метрики */
 [data-testid="metric-container"] {
-    border: 2px solid #31333F;
     padding: 5% 5% 5% 10%;
     border-radius: 5px;
     justify-content: center;
@@ -27,3 +26,9 @@ footer {
 [data-testid="stMetricDelta"] > div:nth-child(1) {
     justify-content: center;
 }
+
+/* Значение метрики */
+[data-testid="stHorizontalBlock"] > * {
+    box-shadow: rgb(0 0 0 / 20%) 0px 2px 1px -1px, rgb(0 0 0 / 14%) 0px 1px 1px 0px, rgb(0 0 0 / 12%) 0px 1px 3px 0px;
+    border-radius: 15px;
+} 
