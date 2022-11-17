@@ -7,4 +7,5 @@ gsheetsdb
 streamlit-elements
 
 # Dependencies
+mysql-connector==2.2.9
 requests
