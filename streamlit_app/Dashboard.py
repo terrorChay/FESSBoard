@@ -12,7 +12,6 @@ def main():
         page_icon="✋🏻" 
     )
     from connectdb import conn
-    from st_init import init
 
     st.title("Главная Страница")
     st.sidebar.success("Выберете страницу 📖")
