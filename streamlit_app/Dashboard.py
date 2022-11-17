@@ -1,6 +1,5 @@
 import streamlit as st
 from streamlit import session_state as session
-from st_init import init
 import pandas as pd
 import plotly.express as px
 
@@ -12,6 +11,7 @@ def main():
         page_icon="✋🏻" 
     )
     from connectdb import conn
+    from st_init import init
 
     st.title("Главная Страница")
     st.sidebar.success("Выберете страницу 📖")
