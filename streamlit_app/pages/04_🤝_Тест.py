@@ -4,11 +4,11 @@ from st_init import init
 
 # Подключение к БД
 def run():
-    test = st.text_input('Переменная на странице дашборд')
-    btn = st.button('Сохранить')
-    if btn:
-        session['test_123'] = test
-
+    if 'test_123' in session:
+        st.write(session.test_123)
+    else:
+        st.write('Ничего нет')
+                
 if __name__ == '__main__':
     init()
     run()
