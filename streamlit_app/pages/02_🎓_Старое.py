@@ -66,7 +66,6 @@ def run():
     with tab1:
         col1, col2 = st.columns([1, 3])
         with col1:
-            with st.container():
                 st.metric("Всего проектов", total_count)
                 fig = myDonut(
                             values          = [active_count, inactive_count], 
@@ -101,6 +100,16 @@ def run():
         with col2:
             fig = px.bar(partners_df.T, orientation='h', )  
             st.plotly_chart(fig, use_container_width=True) 
+    
+    with st.container():
+        st.text('interesting content')
+        st.text('in a potentially ')
+        st.text('very stylish container')
+
+    col1, col2, col3 = st.columns(3)
+    col1.write('cool column box 1')
+    col2.write('cool column box 2')
+    col3.write('cool column box 3')
 
 
 if __name__ == "__main__":
