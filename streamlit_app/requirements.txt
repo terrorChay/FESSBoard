@@ -7,5 +7,4 @@ gsheetsdb
 streamlit-elements
 
 # Dependencies
-pandas-profiling
 requests
