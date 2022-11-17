@@ -1,0 +1,11 @@
+# Core
+streamlit
+
+# Streamlit components
+plotly
+gsheetsdb
+streamlit-elements
+
+# Dependencies
+mysql-connector-python==2.2.9
+requests
