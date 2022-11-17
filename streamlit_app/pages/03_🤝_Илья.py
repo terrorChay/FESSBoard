@@ -37,5 +37,4 @@ def main():
     col3.metric('Тест', 228,'-5%')
     col4.metric('Тест', 228,'-5%')
 if __name__ == "__main__":
-    st.set_page_config(layout="wide")
     main()

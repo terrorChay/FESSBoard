@@ -104,6 +104,5 @@ def run():
 
 
 if __name__ == "__main__":
-    st.set_page_config(page_title="Илья псих", page_icon="🎈", layout="wide")
     init()
     run()
