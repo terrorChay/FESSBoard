@@ -3,6 +3,7 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 from gsheetsdb import connect
+from st_init import init
 
 # Подключение к БД
 conn = connect()

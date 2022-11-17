@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_elements import elements, mui, html
 from types import SimpleNamespace
+from st_init import init
 
 import os, sys
 currentdir = os.path.dirname(os.path.realpath(__file__))
