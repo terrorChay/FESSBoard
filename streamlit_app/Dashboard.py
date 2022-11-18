@@ -28,7 +28,7 @@ def main():
     st.bar_chart(df, x = 'project_end_date', y = 'project_id')
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     st.set_page_config(layout='wide', page_title='FESSBoard')
     setup.load_local_css('styles.css')
     main()
