@@ -62,7 +62,7 @@ class Events(models.Model):
     event_start_date = models.DateField()
     event_end_date = models.DateField()
     event_description = models.TextField()
-    is_frozen = models.IntegerField()
+    is_frozen = models.BooleanField()
 
     class Meta:
         managed = False
@@ -142,15 +142,6 @@ class Projects(models.Model):
         db_table = 'projects'
 
 
-class Regions(models.Model):
-    region_id = models.AutoField(primary_key=True)
-    region = models.CharField(max_length=255)
-    is_foreign = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'regions'
-
 
 class StudentStatuses(models.Model):
     student_status_id = models.AutoField(primary_key=True)
@@ -221,6 +212,18 @@ class TeachersInProjects(models.Model):
         db_table = 'teachers_in_projects'
 
 
+class Regions(models.Model):
+    region_id = models.AutoField(primary_key=True)
+    region = models.CharField(max_length=255)
+    is_foreign = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'regions'
+
+    def __str__(self):
+        return "%s" % self.region
+
 class Universities(models.Model):
     university_id = models.AutoField(primary_key=True)
     university_name = models.CharField(max_length=255)
@@ -230,3 +233,6 @@ class Universities(models.Model):
     class Meta:
         managed = False
         db_table = 'universities'
+
+    def __str__(self):
+        return ""
