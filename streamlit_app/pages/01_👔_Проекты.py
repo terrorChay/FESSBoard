@@ -1,6 +1,11 @@
 import streamlit as st
-from st_init import init
+import streamlit_setup as setup
 
-st.markdown("""
-# Карточка проекта
-""")
+
+
+if __name__ == '__main__':
+    st.set_page_config(layout='wide', page_title='FESSBoard')
+    setup.load_local_css('styles.css')
+    st.markdown("""
+    # Карточка проекта
+    """)

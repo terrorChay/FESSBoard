@@ -3,7 +3,7 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 from gsheetsdb import connect
-from st_init import init
+import streamlit_setup as setup
 
 # Подключение к БД
 conn = connect()
@@ -113,5 +113,6 @@ def run():
 
 
 if __name__ == "__main__":
-    init()
+    st.set_page_config(layout='centered', page_title='DEPRICATED')
+    setup.load_local_css('styles.css')
     run()

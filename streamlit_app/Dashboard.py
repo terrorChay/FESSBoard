@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit import session_state as session
-from st_init import init
+import streamlit_setup as setup
 import pandas as pd
 import plotly.express as px
 from connectdb import conn
@@ -30,5 +30,5 @@ def main():
 
 if __name__ == '__main__':
     st.set_page_config(layout='wide', page_title='FESSBoard')
-    init()
+    setup.load_local_css('styles.css')
     main()

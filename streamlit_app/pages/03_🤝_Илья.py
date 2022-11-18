@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_elements import elements, mui, html
 from types import SimpleNamespace
-from st_init import init
+import streamlit_setup as setup
 
 import os, sys
 currentdir = os.path.dirname(os.path.realpath(__file__))
@@ -36,5 +36,8 @@ def main():
     col2.metric('Тест', 228,'-5%')
     col3.metric('Тест', 228,'-5%')
     col4.metric('Тест', 228,'-5%')
+    
 if __name__ == "__main__":
+    st.set_page_config(layout='wide', page_title='FESSBoard')
+    setup.load_local_css('styles.css')
     main()
