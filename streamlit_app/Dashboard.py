@@ -21,7 +21,6 @@ def main():
     st.sidebar.success("Выберете страницу 📖")
 
     # Достаем датафрейм из сессионной переменной
-    load_data()
     df = session.df
 
     fig = px.pie(df.loc[df['project_company'] > 5], values = 'project_company', names = 'project_name')
@@ -39,4 +38,5 @@ if __name__ == "__main__":
     import streamlit_setup as setup
     setup.load_local_css('styles.css')
     # main func
+    load_data()
     main()
