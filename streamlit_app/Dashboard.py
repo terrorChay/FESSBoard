@@ -11,9 +11,9 @@ def load_data():
     df = frame
     # Пихаем датафрейм в сессионную переменную
     if 'df' not in session:
-        session.df    = df
-    else:
         session['df'] = df
+    else:
+        session.df    = df
 
 def main():
 
@@ -21,8 +21,7 @@ def main():
     st.sidebar.success("Выберете страницу 📖")
 
     # Достаем датафрейм из сессионной переменной
-    if 'df' not in session:
-        load_data()
+    load_data()
     df = session.df
 
     fig = px.pie(df.loc[df['project_company'] > 5], values = 'project_company', names = 'project_name')
@@ -35,7 +34,7 @@ def main():
 
 
 if __name__ == "__main__":
-    st.set_page_config(layout='wide', page_title='FESSBoard')
+    # st.set_page_config(layout='wide', page_title='FESSBoard')
     # styles
     import streamlit_setup as setup
     setup.load_local_css('styles.css')
