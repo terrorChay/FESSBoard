@@ -116,7 +116,7 @@ def run():
         st.dataframe(session.projects, use_container_width=True)
 
 if __name__ == "__main__":
-    setup.page_config(layout='wide', page_title='FESSBoard')
+    setup.page_config(layout='wide', title='FESSBoard')
     setup.load_local_css('styles.css')
     if 'projects' not in st.session_state:
         st.session_state['projects'] = 'not stated'

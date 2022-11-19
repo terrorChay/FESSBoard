@@ -35,7 +35,7 @@ def main():
 
 if __name__ == "__main__":
     # page setup
-    setup.page_config(layout='wide', page_title='FESSBoard')
+    setup.page_config(layout='wide', title='FESSBoard')
 
     # init session vars
     if 'projects' not in st.session_state:
