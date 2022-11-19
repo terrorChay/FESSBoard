@@ -6,7 +6,7 @@ plotly
 streamlit-elements
 
 # DB connection
-mysql-connector==2.2.9
+
 moz-sql-parser==4.40.21126
 gsheetsdb
 requests
