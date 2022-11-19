@@ -38,5 +38,6 @@ def main():
     col4.metric('Тест', 228,'-5%')
     
 if __name__ == "__main__":
+    setup.page_config(layout='wide', page_title='FESSBoard')
     setup.load_local_css('styles.css')
     main()
