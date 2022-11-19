@@ -6,6 +6,6 @@ plotly
 streamlit-elements
 
 # DB connection
-mysql-connector-python==2.2.9
+mysql-connector-python
 gsheetsdb
 requests
