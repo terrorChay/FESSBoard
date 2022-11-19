@@ -116,6 +116,5 @@ def run():
         st.dataframe(df = session.df, use_container_width=True)
 
 if __name__ == "__main__":
-    st.set_page_config(layout='centered', page_title='DEPRICATED')
     setup.load_local_css('styles.css')
     run()
