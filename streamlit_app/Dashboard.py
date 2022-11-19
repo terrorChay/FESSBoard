@@ -10,7 +10,10 @@ def load_data():
     st.dataframe(pd.DataFrame(frame))
     df = frame
     # Пихаем датафрейм в сессионную переменную
-    session['df'] = df
+    if 'df' not in session:
+        session.df    = df
+    else:
+        session['df'] = df
 
 def main():
 
