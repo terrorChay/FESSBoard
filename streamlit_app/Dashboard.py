@@ -5,6 +5,14 @@ import pandas as pd
 import plotly.express as px
 from connectdb import conn
 
+@st.experimental_memo(ttl=600)
+def load_data():
+    frame = pd.read_sql('select * from projects', conn)
+    st.dataframe(pd.DataFrame(frame))
+    df = frame
+    # Пихаем датафрейм в сессионную переменную
+    session['df'] = df
+
 def main():
 
     st.title("Главная Страница")
@@ -17,7 +25,10 @@ def main():
     frame = pd.read_sql('select * from projects', conn)
     st.dataframe(pd.DataFrame(frame))
 
-    df = frame
+    # Достаем датафрейм из сессионной переменной
+    if 'df' not in session:
+        load_data()
+    df = session.df
 
     fig = px.pie(df.loc[df['project_company'] > 5], values = 'project_company', names = 'project_name')
     st.write (fig)
