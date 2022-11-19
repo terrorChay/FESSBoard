@@ -22,9 +22,13 @@ footer {
     justify-content: center;
 }
 
-/* Значение метрики */
-[data-testid="stMetricDelta"] > div:nth-child(1) {
+/* Дельта метрики */
+[data-testid="stMetricDelta"] {
     justify-content: center;
+}
+
+[data-testid="stMetricDelta"] > div:nth-child(1) {
+    width: auto;
 }
 
 /* Style columns */
