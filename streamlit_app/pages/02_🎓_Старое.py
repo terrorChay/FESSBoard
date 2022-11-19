@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit import session_state as session
 import plotly.express as px
 import pandas as pd
 import numpy as np
@@ -110,7 +111,9 @@ def run():
     col1.write('cool column box 1')
     col2.write('cool column box 2')
     col3.write('cool column box 3')
-
+    
+    with st.container():
+        st.dataframe(df = session.df, use_container_width=True)
 
 if __name__ == "__main__":
     st.set_page_config(layout='centered', page_title='DEPRICATED')
