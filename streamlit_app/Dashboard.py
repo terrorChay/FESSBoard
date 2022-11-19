@@ -34,14 +34,12 @@ def main():
 
 
 if __name__ == "__main__":
-    # page config
-    st.set_page_config(layout='wide', page_title='FESSBoard')
-
     # init session vars
     if 'projects' not in st.session_state:
         st.session_state['projects'] = 'not stated'
 
     # styles
+    setup.load_page_setup(title='FESSBoard')
     setup.load_local_css('styles.css')
 
     # main func
