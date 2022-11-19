@@ -113,7 +113,7 @@ def run():
     col3.write('cool column box 3')
     
     with st.container():
-        st.dataframe(df = session.df, use_container_width=True)
+        st.dataframe(df = session.projects, use_container_width=True)
 
 if __name__ == "__main__":
     setup.load_local_css('styles.css')
