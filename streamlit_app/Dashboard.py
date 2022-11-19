@@ -12,8 +12,8 @@ def load_data():
     st.dataframe(pd.DataFrame(frame))
     df = frame
     # Пихаем датафрейм в сессионную переменную
-    session.df = df
-    return session.df
+    session.projects = df
+    return True
 
 def main():
 
@@ -22,7 +22,7 @@ def main():
 
     # Достаем датафрейм из сессионной переменной
     load_data()
-    df = session.df
+    df = session.projects
 
     fig = px.pie(df.loc[df['project_company'] > 5], values = 'project_company', names = 'project_name')
     st.write(fig)
@@ -36,6 +36,10 @@ def main():
 if __name__ == "__main__":
     # page config
     st.set_page_config(layout='wide', page_title='FESSBoard')
+
+    # init session vars
+    if 'projects' not in st.session_state:
+        st.session_state['projects'] = 'not stated'
 
     # styles
     setup.load_local_css('styles.css')
