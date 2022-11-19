@@ -1,9 +1,5 @@
 import streamlit as st
 
-# page settings
-def load_page_setup(title, layout='wide'):
-    st.set_page_config(layout=layout, page_title=title)
-    
 # load css with local source
 def load_local_css(file_name):
     try: # Local launch
