@@ -20,6 +20,7 @@ footer {
 /* Значение метрики */
 [data-testid="stMetricValue"] > div:nth-child(1) {
     justify-content: center;
+    font-weight: 600;
 }
 
 /* Дельта метрики */
