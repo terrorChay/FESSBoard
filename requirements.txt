@@ -1,11 +1,12 @@
 # Core
 streamlit
 
-# Streamlit components
+# Extra visualization
 plotly
-gsheetsdb
 streamlit-elements
 
-# Dependencies
-mysql-connector-python==8.0.31
+# DB connection
+mysql-connector==2.2.9
+moz-sql-parser==4.40.21126
+gsheetsdb
 requests
