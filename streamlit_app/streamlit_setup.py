@@ -3,7 +3,7 @@ import streamlit as st
 # set page layout
 def page_config(title, layout='wide'):
     try:
-        st.set_page_config(layout=layout, title=title)
+        st.set_page_config(layout=layout, page_title=title)
     except st.errors.StreamlitAPIException as e:
         if "can only be called once per app" in e.__str__():
             return
