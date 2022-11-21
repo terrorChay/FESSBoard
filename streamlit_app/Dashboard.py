@@ -3,14 +3,15 @@ from streamlit import session_state as session
 import streamlit_setup as setup
 import pandas as pd
 import plotly.express as px
-from connectdb import conn
+from connectdb import mysql_conn
 
+# Кэшированная 
 @st.experimental_memo(ttl=600)
 def load_data():
     # Достаем данные из бд
-    frame = pd.read_sql('select * from projects', conn)
-    st.dataframe(pd.DataFrame(frame))
-    df = frame
+    with mysql_conn() as conn:
+        frame = pd.read_sql('select * from projects', conn)
+        df = frame
     # Пихаем датафрейм в сессионную переменную
     session.projects = df
     return True
