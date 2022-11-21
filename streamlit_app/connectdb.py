@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 #Connecting to MySql
 @contextmanager
-def init_connection():
+def mysql_conn():
     connection = mysql.connector.connect(**st.secrets["mysql"])
     try:
        yield connection
