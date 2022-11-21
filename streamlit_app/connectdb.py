@@ -1,10 +1,12 @@
 import mysql.connector
 import streamlit as st
-
+from contextlib import contextmanager
 
 #Connecting to MySql
-@st.experimental_singleton
+@contextmanager
 def init_connection():
-    return mysql.connector.connect(**st.secrets["mysql"])
-global conn
-conn = init_connection()
+    connection = mysql.connector.connect(**st.secrets["mysql"])
+    try:
+       yield connection
+    finally:
+        connection.close()

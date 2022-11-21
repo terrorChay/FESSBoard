@@ -1,1 +1,2 @@
 **/streamlit_app/.streamlit/secrets.toml
+*.ipynb
