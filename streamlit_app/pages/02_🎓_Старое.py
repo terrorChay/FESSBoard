@@ -2,27 +2,51 @@ import streamlit as st
 from streamlit import session_state as session
 import plotly.express as px
 import pandas as pd
-import numpy as np
-from gsheetsdb import connect
 import streamlit_setup as setup
+from connectdb import mysql_conn
+from datetime import date
 
-# Подключение к БД
-conn = connect()
-@st.experimental_memo
-def run_query(query):
-    rows = conn.execute(query, headers=1)
-    rows = rows.fetchall()
-    df = pd.DataFrame(rows)
-    return df
+# Кэшированная 
+@st.experimental_singleton
+def load_data():
+    with mysql_conn() as conn:
+        query = """
+                SELECT
+                    projects.project_id 'ID',
+                    companies.company_name 'Заказчик',
+                    company_types.company_type 'Тип компании',
+                    projects.project_name 'Название',
+                    projects.project_description 'Описание',
+                    projects.project_result 'Результат',
+                    projects.project_start_date 'Дата начала',
+                    projects.project_end_date 'Дата окончания',
+                    project_grades.grade 'Грейд',
+                    project_fields.field 'Направление',
+                    projects.is_frozen 'Заморожен'
+                FROM projects 
+                LEFT JOIN project_grades
+                    ON projects.project_grade   = project_grades.grade_id
+                LEFT JOIN project_fields
+                    ON projects.project_field   = project_fields.field_id
+                LEFT JOIN (companies
+                            LEFT JOIN company_types
+                                ON companies.company_type = company_types.company_type_id)
+                    ON projects.project_company = companies.company_id;
+                """
+        frame = pd.read_sql(query, conn)
+        df = frame
+    session.projects = df
+    return True
 
 # Донат пай чарт
-def myDonut(values, names, title=None, hovertemplate='<b>%{label}<br>Процент: %{percent}</b>', textinfo='value', font_size=20, center_text='', center_text_size=26, bLegend=False, theme=px.colors.sequential.RdBu):
-    fig = px.pie(
-                    values = values,
-                    names = names,
-                    title = title,
+def myDonut(values=None, names=None, data=None, title=None, hovertemplate='<b>%{label}<br>Процент: %{percent}</b>', textinfo='value', font_size=20, center_text='', center_text_size=26, bLegend=False, theme=px.colors.sequential.RdBu):
+    fig = px.pie(   
+                    values      = values,
+                    names       = names,
+                    data_frame  = data,
+                    title       = title,
                     color_discrete_sequence = theme,
-                    hole = 0.6)
+                    hole        = 0.6)
     fig.update_traces(   
                         hovertemplate = hovertemplate,
                         textinfo = textinfo,
@@ -35,89 +59,71 @@ def myDonut(values, names, title=None, hovertemplate='<b>%{label}<br>Проце�
 
 # Запуск приложения
 def run():
-    # Запускаем настройки
-
-    # Тянем данные
-    sheet_url = 'https://docs.google.com/spreadsheets/d/1W_mPyvhZHNZeSo00g0ewu5F1YLjXCtdhNFQqfzBS1I0/edit?usp=sharing'
-    query = f'SELECT * FROM "{sheet_url}"'
-    df = run_query(query)
-    list_of_headers = df.columns.values.tolist()
-
-    # Обрабатываем данные 
-    ## Общее
-    df_unique_count = df.nunique()
+    load_data()
+    today = date.today().strftime('%Y-%m-%d')
+    projects_df = session.projects
+    projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
+    projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
     ## Расчеты для проектов
-    total_count = df_unique_count['ID']
-    active_projects = df[df['Дата_окончания'].isna()]
-    active_count = active_projects.shape[0]
-    inactive_count = total_count - active_count
+    total_projects  = projects_df.shape[0]
+    total_active    = projects_df.loc[(projects_df['Дата окончания'] < today)].shape[0]
+    total_inactive  = total_projects - total_active
+    active_ratio    = round(100*(total_inactive/total_projects))
+
     ## Расчеты для сфер
-    sph_df = pd.pivot_table(df, values = 'ID', columns ='Сфера_проекта', aggfunc ='count')
-    sph_names = sph_df.columns.to_list()
-    sph_count = df_unique_count['Сфера_проекта']
-    sph_values = sph_df.values[0]
+    total_spheres   = projects_df['Направление'].nunique()
+    spheres_count   = projects_df.groupby(['Направление'])['Направление'].count().sort_values(ascending=False)
+
     ## Расчеты для партнеров
-    partners_df = pd.pivot_table(df, values = 'ID', columns ='Компания', aggfunc ='count')
-    partners_names = partners_df.columns.to_list()
-    partners_count = df_unique_count['Компания']
-    partners_values = partners_df.values[0]
+    total_companies         = projects_df['Заказчик'].nunique()
+    companies_count         = projects_df.groupby(['Заказчик'])['Заказчик'].count().sort_values(ascending=False)
+    companies_types_count   = projects_df.groupby(['Тип компании'])['Тип компании'].count().sort_values(ascending=False)
 
     tab1, tab2, tab3 = st.tabs(["Проекты", "Сферы", "Партнеры"])
     # Контейнер проектов
     with tab1:
         col1, col2 = st.columns([1, 3])
         with col1:
-                st.metric("Всего проектов", total_count)
+                st.metric("Всего проектов", total_projects)
                 fig = myDonut(
-                            values          = [active_count, inactive_count], 
+                            values          = [total_active, total_inactive], 
                             names           = ['Активные', 'Завершенные'],
                             hovertemplate   = "<b>%{label} проекты</b><br>Процент: %{percent}",
-                            center_text     = f'<b>{round(100*(inactive_count/total_count))}%<br>завершено</b>')
+                            center_text     = f'<b>{active_ratio}%<br>завершено</b>')
                 st.plotly_chart(fig, use_container_width = True)
         
         with col2:
-            st.dataframe(df)
+            st.dataframe(projects_df)
 
     # Контейнер направлений
     with tab2:
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.metric("Всего направлений", sph_count)
+            st.metric("Всего направлений", total_spheres)
             fig = myDonut(
-                        values          = sph_values, 
-                        names           = sph_names,
+                        data            = spheres_count,
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
-                        center_text     = f'<b>{len(sph_names)}<br>сфер</b>')
+                        center_text     = f'<b>{total_spheres}<br>сфер</b>')
             st.plotly_chart(fig, use_container_width = True)
         
         with col2:
-            st.dataframe(sph_df, use_container_width=True)
+            st.dataframe(spheres_count, use_container_width=True)
         
     with tab3:
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.metric("Всего партнеров", partners_count)
+            st.metric("Всего партнеров", total_companies)
 
         with col2:
-            fig = px.bar(partners_df.T, orientation='h', )  
+            fig = px.bar(companies_types_count, orientation='v', color_discrete_sequence=px.colors.sequential.RdBu, )  
             st.plotly_chart(fig, use_container_width=True) 
-    
-    with st.container():
-        st.text('interesting content')
-        st.text('in a potentially ')
-        st.text('very stylish container')
-
-    col1, col2, col3 = st.columns(3)
-    col1.write('cool column box 1')
-    col2.write('cool column box 2')
-    col3.write('cool column box 3')
     
     with st.container():
         st.dataframe(session.projects, use_container_width=True)
 
 if __name__ == "__main__":
     setup.page_config(layout='wide', title='FESSBoard')
-    setup.load_local_css('styles.css')
     if 'projects' not in st.session_state:
         st.session_state['projects'] = 'not stated'
+    setup.load_local_css('styles.css')
     run()
