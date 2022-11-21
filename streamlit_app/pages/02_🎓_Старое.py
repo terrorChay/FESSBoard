@@ -72,12 +72,12 @@ def run():
 
     ## Расчеты для сфер
     total_spheres   = projects_df['Направление'].nunique()
-    spheres_count   = projects_df.groupby(['Направление'])['Направление'].count().sort_values(ascending=False)
+    spheres_count   = projects_df.groupby(['Направление'])['Направление'].count().sort_values(ascending=False).to_frame(name='Кол-во проектов').reset_index(drop=False)
 
     ## Расчеты для партнеров
     total_companies         = projects_df['Заказчик'].nunique()
     companies_count         = projects_df.groupby(['Заказчик'])['Заказчик'].count().sort_values(ascending=False)
-    companies_types_count   = projects_df.groupby(['Тип компании'])['Тип компании'].count().sort_values(ascending=False)
+    companies_types_count   = projects_df.groupby(['Тип компании'])['Тип компании'].count().sort_values(ascending=False).to_frame(name='Кол-во проектов').reset_index(drop=False)
 
     tab1, tab2, tab3 = st.tabs(["Проекты", "Сферы", "Партнеры"])
     # Контейнер проектов
@@ -102,8 +102,10 @@ def run():
             st.metric("Всего направлений", total_spheres)
             fig = myDonut(
                         data            = spheres_count,
+                        values          = 'Кол-во проектов',
+                        names           = 'Направление',
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
-                        center_text     = f'<b>{total_spheres}<br>сфер</b>')
+                        center_text     = f'<b>{total_spheres}<br>всего</b>')
             st.plotly_chart(fig, use_container_width = True)
         
         with col2:
@@ -115,7 +117,11 @@ def run():
             st.metric("Всего партнеров", total_companies)
 
         with col2:
-            fig = px.bar(companies_types_count, orientation='v', color_discrete_sequence=px.colors.sequential.RdBu, )  
+            fig = px.bar(   companies_types_count, 
+                            x = 'Тип компании',
+                            y = 'Кол-во проектов',
+                            color='Тип компании',
+                            color_discrete_sequence=px.colors.sequential.RdBu)  
             st.plotly_chart(fig, use_container_width=True) 
     
     with st.container():
