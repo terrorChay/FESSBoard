@@ -22,7 +22,8 @@ def main():
     st.sidebar.success("Выберете страницу 📖")
 
     # Достаем датафрейм из сессионной переменной
-    load_data()
+    if 'projects_staroe' not in st.session_state:
+        load_data()
     df = session.projects
 
     fig = px.pie(df.loc[df['project_company'] > 5], values = 'project_company', names = 'project_name')
@@ -37,10 +38,6 @@ def main():
 if __name__ == "__main__":
     # page setup
     setup.page_config(layout='wide', title='FESSBoard')
-
-    # init session vars
-    if 'projects' not in st.session_state:
-        st.session_state['projects'] = 'not stated'
 
     # styles
     setup.load_local_css('styles.css')
