@@ -13,7 +13,7 @@ def load_data():
         frame = pd.read_sql('select * from projects', conn)
         df = frame
     # Пихаем датафрейм в сессионную переменную
-    session.projects = df
+    session['projects'] = df
     return True
 
 def main():
@@ -22,7 +22,7 @@ def main():
     st.sidebar.success("Выберете страницу 📖")
 
     # Достаем датафрейм из сессионной переменной
-    if 'projects_staroe' not in st.session_state:
+    if 'projects' not in st.session_state:
         load_data()
     df = session.projects
 

@@ -7,37 +7,42 @@ from connectdb import mysql_conn
 from datetime import date
 
 # Кэшированная 
-@st.experimental_singleton
-def load_data():
+@st.experimental_memo
+def query_data(query):
     with mysql_conn() as conn:
-        query = """
-                SELECT
-                    projects.project_id 'ID',
-                    companies.company_name 'Заказчик',
-                    company_types.company_type 'Тип компании',
-                    projects.project_name 'Название',
-                    projects.project_description 'Описание',
-                    projects.project_result 'Результат',
-                    projects.project_start_date 'Дата начала',
-                    projects.project_end_date 'Дата окончания',
-                    project_grades.grade 'Грейд',
-                    project_fields.field 'Направление',
-                    projects.is_frozen 'Заморожен'
-                FROM projects 
-                LEFT JOIN project_grades
-                    ON projects.project_grade   = project_grades.grade_id
-                LEFT JOIN project_fields
-                    ON projects.project_field   = project_fields.field_id
-                LEFT JOIN (companies
-                            LEFT JOIN company_types
-                                ON companies.company_type = company_types.company_type_id)
-                    ON projects.project_company = companies.company_id;
-                """
-        projects_df = pd.read_sql(query, conn)
-        projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
-        projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
-    session.projects_staroe = projects_df
-    return True
+        df = pd.read_sql(query, conn)
+    return df
+
+@st.experimental_memo
+def load_projects():
+    query   = """
+        SELECT
+            projects.project_id 'ID',
+            companies.company_name 'Заказчик',
+            company_types.company_type 'Тип компании',
+            projects.project_name 'Название',
+            projects.project_description 'Описание',
+            projects.project_result 'Результат',
+            projects.project_start_date 'Дата начала',
+            projects.project_end_date 'Дата окончания',
+            project_grades.grade 'Грейд',
+            project_fields.field 'Направление',
+            projects.is_frozen 'Заморожен'
+        FROM projects 
+        LEFT JOIN project_grades
+            ON projects.project_grade   = project_grades.grade_id
+        LEFT JOIN project_fields
+            ON projects.project_field   = project_fields.field_id
+        LEFT JOIN (companies
+                    LEFT JOIN company_types
+                        ON companies.company_type = company_types.company_type_id)
+            ON projects.project_company = companies.company_id;
+        """
+    projects_df = query_data(query)
+    projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
+    projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
+    session['projects_staroe'] = projects_df
+    return projects_df
 
 # Донат пай чарт
 def myDonut(values=None, names=None, data=None, title=None, hovertemplate='<b>%{label}<br>Процент: %{percent}</b>', textinfo='value', font_size=20, center_text='', center_text_size=26, bLegend=False, theme=px.colors.sequential.RdBu):
@@ -61,10 +66,11 @@ def myDonut(values=None, names=None, data=None, title=None, hovertemplate='<b>%{
 # Запуск приложения
 def run():
     if 'projects_staroe' not in st.session_state:
-        load_data()
-    today = date.today().strftime('%Y-%m-%d')
-    projects_df = session.projects_staroe
+        projects_df = load_projects()
+    else:
+        projects_df = session.projects_staroe
     ## Расчеты для проектов
+    today = date.today().strftime('%Y-%m-%d')
     total_projects  = projects_df.shape[0]
     total_active    = projects_df.loc[(projects_df['Дата окончания'] < today)].shape[0]
     total_inactive  = total_projects - total_active
