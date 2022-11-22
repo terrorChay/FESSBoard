@@ -33,9 +33,10 @@ def load_data():
                                 ON companies.company_type = company_types.company_type_id)
                     ON projects.project_company = companies.company_id;
                 """
-        frame = pd.read_sql(query, conn)
-        df = frame
-    session.projects = df
+        projects_df = pd.read_sql(query, conn)
+        projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
+        projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
+    session.projects_staroe = projects_df
     return True
 
 # Донат пай чарт
@@ -61,9 +62,7 @@ def myDonut(values=None, names=None, data=None, title=None, hovertemplate='<b>%{
 def run():
     load_data()
     today = date.today().strftime('%Y-%m-%d')
-    projects_df = session.projects
-    projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
-    projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
+    projects_df = session.projects_staroe
     ## Расчеты для проектов
     total_projects  = projects_df.shape[0]
     total_active    = projects_df.loc[(projects_df['Дата окончания'] < today)].shape[0]
@@ -125,11 +124,11 @@ def run():
             st.plotly_chart(fig, use_container_width=True) 
     
     with st.container():
-        st.dataframe(session.projects, use_container_width=True)
+        st.dataframe(session.projects_staroe, use_container_width=True)
 
 if __name__ == "__main__":
     setup.page_config(layout='wide', title='FESSBoard')
-    if 'projects' not in st.session_state:
-        st.session_state['projects'] = 'not stated'
+    if 'projects_staroe' not in st.session_state:
+        st.session_state['projects_staroe'] = 'not stated'
     setup.load_local_css('styles.css')
     run()
