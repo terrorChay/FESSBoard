@@ -60,7 +60,8 @@ def myDonut(values=None, names=None, data=None, title=None, hovertemplate='<b>%{
 
 # Запуск приложения
 def run():
-    load_data()
+    if 'projects_staroe' not in st.session_state:
+        load_data()
     today = date.today().strftime('%Y-%m-%d')
     projects_df = session.projects_staroe
     ## Расчеты для проектов
@@ -128,7 +129,5 @@ def run():
 
 if __name__ == "__main__":
     setup.page_config(layout='wide', title='FESSBoard')
-    if 'projects_staroe' not in st.session_state:
-        st.session_state['projects_staroe'] = 'not stated'
     setup.load_local_css('styles.css')
     run()
