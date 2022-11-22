@@ -6,13 +6,13 @@ import streamlit_setup as setup
 from connectdb import mysql_conn
 from datetime import date
  
-@st.experimental_memo
+@st.experimental_memo(ttl=600)
 def query_data(query):
     with mysql_conn() as conn:
         df = pd.read_sql(query, conn)
     return df
 
-@st.experimental_memo(ttl=600)
+@st.experimental_memo
 def load_projects():
     query   =   """
                 SELECT
