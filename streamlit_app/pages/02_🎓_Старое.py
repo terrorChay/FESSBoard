@@ -131,7 +131,7 @@ def run():
             st.plotly_chart(fig, use_container_width=True) 
     
     with st.container():
-        st.dataframe(session.projects_staroe, use_container_width=True)
+        st.dataframe(projects_df, use_container_width=True)
 
 if __name__ == "__main__":
     setup.page_config(layout='wide', title='FESSBoard')
