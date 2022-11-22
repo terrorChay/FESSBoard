@@ -5,8 +5,7 @@ import pandas as pd
 import streamlit_setup as setup
 from connectdb import mysql_conn
 from datetime import date
-
-# Кэшированная 
+ 
 @st.experimental_memo
 def query_data(query):
     with mysql_conn() as conn:
@@ -15,29 +14,29 @@ def query_data(query):
 
 @st.experimental_memo
 def load_projects():
-    query   = """
-        SELECT
-            projects.project_id 'ID',
-            companies.company_name 'Заказчик',
-            company_types.company_type 'Тип компании',
-            projects.project_name 'Название',
-            projects.project_description 'Описание',
-            projects.project_result 'Результат',
-            projects.project_start_date 'Дата начала',
-            projects.project_end_date 'Дата окончания',
-            project_grades.grade 'Грейд',
-            project_fields.field 'Направление',
-            projects.is_frozen 'Заморожен'
-        FROM projects 
-        LEFT JOIN project_grades
-            ON projects.project_grade   = project_grades.grade_id
-        LEFT JOIN project_fields
-            ON projects.project_field   = project_fields.field_id
-        LEFT JOIN (companies
-                    LEFT JOIN company_types
-                        ON companies.company_type = company_types.company_type_id)
-            ON projects.project_company = companies.company_id;
-        """
+    query   =   """
+                SELECT
+                    projects.project_id 'ID',
+                    companies.company_name 'Заказчик',
+                    company_types.company_type 'Тип компании',
+                    projects.project_name 'Название',
+                    projects.project_description 'Описание',
+                    projects.project_result 'Результат',
+                    projects.project_start_date 'Дата начала',
+                    projects.project_end_date 'Дата окончания',
+                    project_grades.grade 'Грейд',
+                    project_fields.field 'Направление',
+                    projects.is_frozen 'Заморожен'
+                FROM projects 
+                LEFT JOIN project_grades
+                    ON projects.project_grade   = project_grades.grade_id
+                LEFT JOIN project_fields
+                    ON projects.project_field   = project_fields.field_id
+                LEFT JOIN (companies
+                            LEFT JOIN company_types
+                                ON companies.company_type = company_types.company_type_id)
+                    ON projects.project_company = companies.company_id;
+                """
     projects_df = query_data(query)
     projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
     projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
@@ -65,6 +64,7 @@ def myDonut(values=None, names=None, data=None, title=None, hovertemplate='<b>%{
 
 # Запуск приложения
 def run():
+    # Проверяем есть ли в кэше датафрейм с проектами, если да, то берем его от туда, если нет - то загружаем его заново
     if 'projects_staroe' not in st.session_state:
         projects_df = load_projects()
     else:
