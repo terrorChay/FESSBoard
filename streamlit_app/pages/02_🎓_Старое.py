@@ -6,12 +6,14 @@ import streamlit_setup as setup
 from connectdb import mysql_conn
 from datetime import date
  
+ # Database Query
 @st.experimental_memo(ttl=600)
 def query_data(query):
     with mysql_conn() as conn:
         df = pd.read_sql(query, conn)
     return df
 
+# Load projects dataset
 @st.experimental_memo
 def load_projects():
     query   =   """
@@ -43,6 +45,38 @@ def load_projects():
     session['projects_staroe'] = projects_df
     return projects_df
 
+# Perform heavy calculations on the dataset
+@st.experimental_memo
+def projects_calc(projects_df):
+    ## Расчеты для проектов
+    today = date.today().strftime('%Y-%m-%d')
+    total_projects  = projects_df.shape[0]
+    total_active    = projects_df.loc[(projects_df['Дата окончания'] < today)].shape[0]
+    total_inactive  = total_projects - total_active
+    active_ratio    = round(100*(total_inactive/total_projects))
+
+    ## Расчеты для сфер
+    total_spheres   = projects_df['Направление'].nunique()
+    spheres_count   = projects_df.groupby(['Направление'])['Направление'].count().sort_values(ascending=False).to_frame(name='Кол-во проектов').reset_index(drop=False)
+
+    ## Расчеты для партнеров
+    total_companies         = projects_df['Заказчик'].nunique()
+    companies_count         = projects_df.groupby(['Заказчик'])['Заказчик'].count().sort_values(ascending=False)
+    companies_types_count   = projects_df.groupby(['Тип компании'])['Тип компании'].count().sort_values(ascending=False).to_frame(name='Кол-во проектов').reset_index(drop=False)
+
+    result = {
+        'total_projects'        :   total_projects,
+        'total_active'          :   total_active,
+        'total_inactive'        :   total_inactive,
+        'active_ratio'          :   active_ratio,
+        'total_spheres'         :   total_spheres,
+        'spheres_count'         :   spheres_count,
+        'total_companies'       :   total_companies,
+        'companies_count'       :   companies_count,
+        'companies_types_count' :   companies_types_count
+    }
+    return result
+
 # Донат пай чарт
 def myDonut(values=None, names=None, data=None, title=None, hovertemplate='<b>%{label}<br>Процент: %{percent}</b>', textinfo='value', font_size=20, center_text='', center_text_size=26, bLegend=False, theme=px.colors.sequential.RdBu):
     fig = px.pie(   
@@ -69,61 +103,48 @@ def run():
         projects_df = load_projects()
     else:
         projects_df = session.projects_staroe
-    ## Расчеты для проектов
-    today = date.today().strftime('%Y-%m-%d')
-    total_projects  = projects_df.shape[0]
-    total_active    = projects_df.loc[(projects_df['Дата окончания'] < today)].shape[0]
-    total_inactive  = total_projects - total_active
-    active_ratio    = round(100*(total_inactive/total_projects))
 
-    ## Расчеты для сфер
-    total_spheres   = projects_df['Направление'].nunique()
-    spheres_count   = projects_df.groupby(['Направление'])['Направление'].count().sort_values(ascending=False).to_frame(name='Кол-во проектов').reset_index(drop=False)
+    # Тяжеловесные подсчеты
+    projects_info = projects_calc(projects_df)
 
-    ## Расчеты для партнеров
-    total_companies         = projects_df['Заказчик'].nunique()
-    companies_count         = projects_df.groupby(['Заказчик'])['Заказчик'].count().sort_values(ascending=False)
-    companies_types_count   = projects_df.groupby(['Тип компании'])['Тип компании'].count().sort_values(ascending=False).to_frame(name='Кол-во проектов').reset_index(drop=False)
-
+    # Горизонтальный блок с табами
     tab1, tab2, tab3 = st.tabs(["Проекты", "Сферы", "Партнеры"])
-    # Контейнер проектов
     with tab1:
         col1, col2 = st.columns([1, 3])
         with col1:
-                st.metric("Всего проектов", total_projects)
+                st.metric("Всего проектов", projects_info['total_projects'])
                 fig = myDonut(
-                            values          = [total_active, total_inactive], 
+                            values          = [projects_info['total_active'], projects_info['total_inactive']], 
                             names           = ['Активные', 'Завершенные'],
                             hovertemplate   = "<b>%{label} проекты</b><br>Процент: %{percent}",
-                            center_text     = f'<b>{active_ratio}%<br>завершено</b>')
+                            center_text     = f"<b>{projects_info['active_ratio']}%<br>завершено</b>")
                 st.plotly_chart(fig, use_container_width = True)
         
         with col2:
             st.dataframe(projects_df)
 
-    # Контейнер направлений
     with tab2:
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.metric("Всего направлений", total_spheres)
+            st.metric("Всего направлений", projects_info['total_spheres'])
             fig = myDonut(
-                        data            = spheres_count,
+                        data            = projects_info['spheres_count'],
                         values          = 'Кол-во проектов',
                         names           = 'Направление',
                         hovertemplate   = "<b>%{label}</b><br>Процент: %{percent}",
-                        center_text     = f'<b>{total_spheres}<br>всего</b>')
+                        center_text     = f'<b>{projects_info["total_spheres"]}<br>всего</b>')
             st.plotly_chart(fig, use_container_width = True)
         
         with col2:
-            st.dataframe(spheres_count, use_container_width=True)
+            st.dataframe(projects_info['spheres_count'], use_container_width=True)
         
     with tab3:
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.metric("Всего партнеров", total_companies)
+            st.metric("Всего партнеров", projects_info['total_companies'])
 
         with col2:
-            fig = px.bar(   companies_types_count, 
+            fig = px.bar(   projects_info['companies_types_count'], 
                             x = 'Тип компании',
                             y = 'Кол-во проектов',
                             color='Тип компании',
