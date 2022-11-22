@@ -12,7 +12,7 @@ def query_data(query):
         df = pd.read_sql(query, conn)
     return df
 
-@st.experimental_memo
+@st.experimental_memo(ttl=600)
 def load_projects():
     query   =   """
                 SELECT
