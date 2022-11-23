@@ -53,7 +53,7 @@ def load_projects():
     return projects_df
 
 # Apply filters and return filtered dataset
-def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
     modify = st.sidebar.checkbox("Показать фильтры")
 
     if not modify:
@@ -75,7 +75,8 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     modification_container = st.container()
 
     with modification_container:
-        to_filter_columns = st.multiselect("Фильтровать по", df.columns)
+        cols = [col for col in df.columns if col not in cols_to_ignore]
+        to_filter_columns = st.multiselect("Фильтровать по", cols)
         for column in to_filter_columns:
             left, right = st.columns((1, 20))
             left.write("↳")
@@ -141,7 +142,7 @@ def run():
             :warning:Если убрать все значения в выбранном фильтре, то будут искаться проекты с пустым полем!
             ''')
     # Отрисовываем фильтры и возвращаем отфильтрованный датесет
-    projects_df_filtered = filter_dataframe(projects_df)
+    projects_df_filtered = filter_dataframe(projects_df, ['ID', 'Описание'])
     tab1, tab2 = st.tabs(["Данные", "Аналитика"])
     with tab1:
         st.dataframe(projects_df_filtered, use_container_width=True)
