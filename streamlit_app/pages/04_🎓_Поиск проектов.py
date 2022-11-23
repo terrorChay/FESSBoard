@@ -54,7 +54,7 @@ def load_projects():
 
 # Apply filters and return filtered dataset
 def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
-    modify = st.sidebar.selectbox('Фильтрация', options=['Отключена', 'По критериям', 'По поиску'])
+    modify = st.sidebar.selectbox('Способ фильтрации', options=['Отключена', 'По критериям', 'По поиску'])
 
     if  modify == 'Отключена':
         return df 
