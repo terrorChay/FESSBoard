@@ -1,8 +1,15 @@
 import streamlit as st
 from streamlit import session_state as session
-import plotly.express as px
-import pandas as pd
 import streamlit_setup as setup
+import pandas as pd
+import numpy as np
+from pandas.api.types import (
+    is_categorical_dtype,
+    is_datetime64_any_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+)
+import plotly.express as px
 from connectdb import mysql_conn
 from datetime import date
  
@@ -42,22 +49,81 @@ def load_projects():
     projects_df = query_data(query)
     projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
     projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
-    session['projectss'] = projects_df
+    projects_df['ID']               = pd.to_numeric(projects_df['ID'])
     return projects_df
 
-@st.experimental_memo
-def get_controls_vals(df):
-    vals = {
-        'Заказчики'         :   sorted(df['Заказчик'].unique()),
-        'Типы компаний'     :   sorted(df['Тип компании'].unique()),
-        'Направления'       :   sorted(df['Направление'].unique()),
-        'Грейды'            :   sorted(df['Грейд'].unique())
-    }
-    return vals
 # Apply filters and return filtered dataset
-@st.experimental_memo
-def filter_dataframe(dataframe, filters):
-    pass
+def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    modify = st.sidebar.checkbox("Показать фильтры")
+
+    if not modify:
+        return df
+
+    df = df.copy()
+
+    # Try to convert datetimes into a standard format (datetime, no timezone)
+    for col in df.columns:
+        if is_object_dtype(df[col]):
+            try:
+                df[col] = pd.to_datetime(df[col])
+            except Exception:
+                pass
+
+        if is_datetime64_any_dtype(df[col]):
+            df[col] = df[col].dt.tz_localize(None)
+
+    modification_container = st.container()
+
+    with modification_container:
+        to_filter_columns = st.multiselect("Фильтровать по", df.columns)
+        for column in to_filter_columns:
+            left, right = st.columns((1, 20))
+            left.write("↳")
+            if is_numeric_dtype(df[column]):
+                _min = float(df[column].min())
+                _max = float(df[column].max())
+                step = (_max - _min) / 100
+                user_num_input = right.slider(
+                    f" {column}",
+                    min_value=_min,
+                    max_value=_max,
+                    value=(_min, _max),
+                    step=step,
+                )
+                df = df[df[column].between(*user_num_input)]
+            elif is_datetime64_any_dtype(df[column]):
+                user_date_input = right.date_input(
+                    f" {column}",
+                    value=(
+                        df[column].min(),
+                        df[column].max(),
+                    ),
+                )
+                if len(user_date_input) == 2:
+                    user_date_input = tuple(map(pd.to_datetime, user_date_input))
+                    start_date, end_date = user_date_input
+                    df = df.loc[df[column].between(start_date, end_date)]
+                        # Treat columns with < 10 unique values as categorical
+            elif is_categorical_dtype(df[column]) or df[column].nunique() < 30:
+                options = np.insert(df[column].unique(), 0, 'Все')
+                user_cat_input = right.multiselect(
+                    f"{column}",
+                    options,
+                    default='Все',
+                )
+                if 'Все' in (user_cat_input):
+                    _cat_input = df[column].unique()
+                else:
+                    _cat_input = user_cat_input
+                df = df[df[column].isin(_cat_input)]
+            else:
+                user_text_input = right.text_input(
+                    f"{column}",
+                )
+                if user_text_input:
+                    df = df[df[column].astype(str).str.contains(user_text_input)]
+
+    return df
 
 @st.experimental_memo
 def convert_df(df):
@@ -65,37 +131,26 @@ def convert_df(df):
 
 # Запуск приложения
 def run():
-    # Проверяем есть ли в кэше датафрейм с проектами, если да, то берем его от туда, если нет - то загружаем его заново
-    if 'projectss' not in st.session_state:
-        projects_df = load_projects()
-    else:
-        projects_df = session.projectss
-
-    # Controls vals
-    controls_vals = get_controls_vals(projects_df)
-    # Controls
-    selected_companies          = st.sidebar.multiselect(label='Выберите компании', options=controls_vals['Заказчики'])
-    selected_company_types      = st.sidebar.multiselect(label='Выберите типы компаний', options=controls_vals['Типы компаний'])
-    selected_spheres            = st.sidebar.multiselect(label='Выберите направления', options=controls_vals['Направления'])
-    selected_grades             = st.sidebar.multiselect(label='Выберите грейды', options=controls_vals['Грейды'])
-    selected_years              = st.sidebar.multiselect(label='Выберите годы', options=range(2015, 2022, 1))
-    show_active                 = st.sidebar.checkbox('Показывать активные', True)
-    show_inactive               = st.sidebar.checkbox('Показывать завершенные', True)
+    # Загружаем датасет
+    projects_df = load_projects()
     st.title('Поиск проектов')
     st.write('''
             На данной странице можно составить выборку проектов при заданных настройках.  
-            Настройки расположены в левой боковой панели приложения.  
-            Вы можете скачать составленную выборку в формате .CSV (совместимо с Microsoft Excel).
+            Включить и выключить отображение фильтров можно в левой боковой панели приложения.
+            Вы также можете скачать составленную выборку в формате .CSV (совместимо с Microsoft Excel)! \n
+            :warning:Если добавить столбец в фильтр, но не указывать искомые значения, то будут искаться проекты с незаполненым полем!
             ''')
+    # Отрисовываем фильтры и возвращаем отфильтрованный датесет
+    projects_df_filtered = filter_dataframe(projects_df)
     tab1, tab2 = st.tabs(["Данные", "Аналитика"])
     with tab1:
-        st.dataframe(projects_df, use_container_width=True)
-        csv = convert_df(projects_df)
+        st.dataframe(projects_df_filtered, use_container_width=True)
+        csv = convert_df(projects_df_filtered)
         st.download_button('Скачать таблицу', data=csv, file_name="fessboard_slice.csv", mime='text/csv', )
     with tab2:
         st.write('какая-то аналитика')
 
 if __name__ == "__main__":
     setup.page_config(layout='centered', title='Поиск проектов')
-    setup.load_local_css('styles.css')
+    setup.remove_footer()
     run()

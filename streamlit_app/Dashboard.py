@@ -38,9 +38,8 @@ def main():
 if __name__ == "__main__":
     # page setup
     setup.page_config(layout='wide', title='FESSBoard')
-
     # styles
+    setup.remove_footer()
     setup.load_local_css('styles.css')
-
     # main func
     main()

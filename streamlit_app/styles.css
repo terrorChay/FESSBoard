@@ -1,8 +1,3 @@
-/* Вотермарка (логотип стримлита) */
-footer {
-    visibility: hidden;
-}
-
 /* Контейнер метрики */
 [data-testid="metric-container"] {
     padding: 5% 5% 5% 10%;

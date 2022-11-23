@@ -157,4 +157,5 @@ def run():
 if __name__ == "__main__":
     setup.page_config(layout='wide', title='FESSBoard')
     setup.load_local_css('styles.css')
+    setup.remove_footer()
     run()

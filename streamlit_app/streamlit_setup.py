@@ -18,6 +18,18 @@ def load_local_css(file_name):
         with open(f'{file_name}', 'r') as f:
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
+# remove streamlit logo footer
+def remove_footer():
+    st.markdown('''
+                <style>
+                footer {
+                    visibility: hidden;
+                }
+                </style>
+                ''', unsafe_allow_html=True)
+
+
+
 # load css with external source
 def load_remote_css(url):
     st.markdown(f'<link href="{url}" rel="stylesheet">', unsafe_allow_html=True)
