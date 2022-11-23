@@ -3,6 +3,7 @@ from streamlit import session_state as session
 import streamlit_setup as setup
 import pandas as pd
 import numpy as np
+import re
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
@@ -77,7 +78,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
     with modification_container:
         cols = [col for col in df.columns if col not in cols_to_ignore]
         if modify == 'По критериям':
-            to_filter_columns = st.multiselect("Фильтровать по", cols)
+            to_filter_columns = st.multiselect("Критерии фильтрации", cols)
             for column in to_filter_columns:
                 left, right = st.columns((1, 20))
                 left.write("└")
@@ -124,10 +125,10 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                     if user_text_input:
                         df = df[df[column].astype(str).str.contains(user_text_input)]
         elif modify == 'По поиску':
-            user_text_input = st.text_input(f"Текст для поиска", help='Укажите текст, который могут содержать интересующие Вас проекты')
+            user_text_input = st.text_input(f"Искать в проектах", help='Укажите текст, который могут содержать интересующие Вас проекты')
             if user_text_input:
                 _user_text_input = "".join([char for char in user_text_input if char.isalnum()])
-                mask = df.apply(lambda x: x.astype(str).str.contains(_user_text_input, na=False))
+                mask = df.apply(lambda x: x.astype(str).str.contains(_user_text_input, na=False, flags=re.IGNORECASE))
                 df = df.loc[mask.any(axis=1)]
 
     return df
