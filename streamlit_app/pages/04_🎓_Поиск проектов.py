@@ -54,7 +54,7 @@ def load_projects():
 
 # Apply filters and return filtered dataset
 def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
-    modify = st.sidebar.checkbox("Показать фильтры")
+    modify = st.sidebar.checkbox(label="Показать фильтры", value=True)
 
     if not modify:
         return df
@@ -79,7 +79,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
         to_filter_columns = st.multiselect("Фильтровать по", cols)
         for column in to_filter_columns:
             left, right = st.columns((1, 20))
-            left.write("↳")
+            left.write("└")
             if is_numeric_dtype(df[column]):
                 _min = float(df[column].min())
                 _max = float(df[column].max())
@@ -106,13 +106,12 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                     df = df.loc[df[column].between(start_date, end_date)]
                         # Treat columns with < 10 unique values as categorical
             elif is_categorical_dtype(df[column]) or df[column].nunique() < 30:
-                options = np.insert(df[column].unique(), 0, 'Все')
+                options = df[column].unique()
                 user_cat_input = right.multiselect(
                     f"{column}",
-                    options,
-                    default='Все',
+                    options
                 )
-                if 'Все' in (user_cat_input):
+                if user_cat_input == []:
                     _cat_input = df[column].unique()
                 else:
                     _cat_input = user_cat_input
@@ -138,18 +137,19 @@ def run():
     st.write('''
             На данной странице можно составить выборку проектов при заданных настройках.  
             Включить и выключить отображение фильтров можно в левой боковой панели приложения.
-            Вы также можете скачать составленную выборку в формате .CSV (совместимо с Microsoft Excel)! \n
-            :warning:Если убрать все значения в выбранном фильтре, то будут искаться проекты с пустым полем!
+            Вы также можете скачать составленную выборку в формате .CSV (совместимо с Microsoft Excel)!
             ''')
     # Отрисовываем фильтры и возвращаем отфильтрованный датесет
     projects_df_filtered = filter_dataframe(projects_df, ['ID', 'Описание'])
     tab1, tab2 = st.tabs(["Данные", "Аналитика"])
     with tab1:
-        st.dataframe(projects_df_filtered, use_container_width=True)
+        st.dataframe(projects_df_filtered)
         csv = convert_df(projects_df_filtered)
         st.download_button('Скачать таблицу', data=csv, file_name="fessboard_slice.csv", mime='text/csv', )
     with tab2:
         st.write('какая-то аналитика')
+    # Кнопка фидбека
+    st.sidebar.button(label='Сообщить об ошибке')
 
 if __name__ == "__main__":
     setup.page_config(layout='centered', title='Поиск проектов')
