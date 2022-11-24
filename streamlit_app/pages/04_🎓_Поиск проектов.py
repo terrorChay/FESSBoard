@@ -53,12 +53,22 @@ def load_projects():
     projects_df['ID']               = pd.to_numeric(projects_df['ID'])
     return projects_df
 
+# Apply search filters and return filtered dataset
+def search_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+
+    df = df.copy()
+
+    user_text_input = st.text_input(f"Поиск по проектам", help='Укажите текст, который могут содержать интересующие Вас проекты')
+
+    if user_text_input:
+        _user_text_input = "".join([char for char in user_text_input if char.isalnum()])
+        mask = df.apply(lambda x: x.astype(str).str.contains(_user_text_input, na=False, flags=re.IGNORECASE))
+        df = df.loc[mask.any(axis=1)]
+
+    return df
+
 # Apply filters and return filtered dataset
 def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
-    modify = st.sidebar.selectbox('Способ фильтрации', options=['Отключена', 'По критериям', 'По поиску'])
-
-    if  modify == 'Отключена':
-        return df 
 
     df = df.copy()
 
@@ -77,59 +87,52 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
 
     with modification_container:
         cols = [col for col in df.columns if col not in cols_to_ignore]
-        if modify == 'По критериям':
-            to_filter_columns = st.multiselect("Критерии фильтрации", cols)
-            for column in to_filter_columns:
-                left, right = st.columns((1, 20))
-                left.write("└")
-                if is_numeric_dtype(df[column]):
-                    _min = float(df[column].min())
-                    _max = float(df[column].max())
-                    step = (_max - _min) / 100
-                    user_num_input = right.slider(
-                        f" {column}",
-                        min_value=_min,
-                        max_value=_max,
-                        value=(_min, _max),
-                        step=step,
-                    )
-                    df = df[df[column].between(*user_num_input)]
-                elif is_datetime64_any_dtype(df[column]):
-                    user_date_input = right.date_input(
-                        f" {column}",
-                        value=(
-                            df[column].min(),
-                            df[column].max(),
-                        ),
-                    )
-                    if len(user_date_input) == 2:
-                        user_date_input = tuple(map(pd.to_datetime, user_date_input))
-                        start_date, end_date = user_date_input
-                        df = df.loc[df[column].between(start_date, end_date)]
-                            # Treat columns with < 10 unique values as categorical
-                elif is_categorical_dtype(df[column]) or df[column].nunique() < 30:
-                    options = df[column].unique()
-                    user_cat_input = right.multiselect(
-                        f"{column}",
-                        options
-                    )
-                    if user_cat_input == []:
-                        _cat_input = df[column].unique()
-                    else:
-                        _cat_input = user_cat_input
-                    df = df[df[column].isin(_cat_input)]
+        to_filter_columns = st.multiselect("Параметры фильтрации", cols)
+        for column in to_filter_columns:
+            left, right = st.columns((1, 20))
+            left.write("└")
+            if is_numeric_dtype(df[column]):
+                _min = float(df[column].min())
+                _max = float(df[column].max())
+                step = (_max - _min) / 100
+                user_num_input = right.slider(
+                    f" {column}",
+                    min_value=_min,
+                    max_value=_max,
+                    value=(_min, _max),
+                    step=step,
+                )
+                df = df[df[column].between(*user_num_input)]
+            elif is_datetime64_any_dtype(df[column]):
+                user_date_input = right.date_input(
+                    f" {column}",
+                    value=(
+                        df[column].min(),
+                        df[column].max(),
+                    ),
+                )
+                if len(user_date_input) == 2:
+                    user_date_input = tuple(map(pd.to_datetime, user_date_input))
+                    start_date, end_date = user_date_input
+                    df = df.loc[df[column].between(start_date, end_date)]
+                        # Treat columns with < 10 unique values as categorical
+            elif is_categorical_dtype(df[column]) or df[column].nunique() < 30:
+                options = df[column].unique()
+                user_cat_input = right.multiselect(
+                    f"{column}",
+                    options
+                )
+                if user_cat_input == []:
+                    _cat_input = df[column].unique()
                 else:
-                    user_text_input = right.text_input(
-                        f"{column}",
-                    )
-                    if user_text_input:
-                        df = df[df[column].astype(str).str.contains(user_text_input)]
-        elif modify == 'По поиску':
-            user_text_input = st.text_input(f"Искать в проектах", help='Укажите текст, который могут содержать интересующие Вас проекты')
-            if user_text_input:
-                _user_text_input = "".join([char for char in user_text_input if char.isalnum()])
-                mask = df.apply(lambda x: x.astype(str).str.contains(_user_text_input, na=False, flags=re.IGNORECASE))
-                df = df.loc[mask.any(axis=1)]
+                    _cat_input = user_cat_input
+                df = df[df[column].isin(_cat_input)]
+            else:
+                user_text_input = right.text_input(
+                    f"{column}",
+                )
+                if user_text_input:
+                    df = df[df[column].astype(str).str.contains(user_text_input)]
 
     return df
 
@@ -137,9 +140,9 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
 def convert_df(df):
     return df.to_csv().encode('utf-8')
 
-# Запуск приложения
+# App launch
 def run():
-    # Загружаем датасет
+    # Load dataframe
     projects_df = load_projects()
     st.title('Поиск проектов')
     st.write('''
@@ -147,16 +150,18 @@ def run():
             Включить и выключить отображение фильтров можно в левой боковой панели приложения.
             Вы также можете скачать составленную выборку в формате .CSV (совместимо с Microsoft Excel)!
             ''')
-    # Отрисовываем фильтры и возвращаем отфильтрованный датесет
-    projects_df_filtered = filter_dataframe(projects_df, ['ID', 'Описание'])
+    # Draw search filters and return filtered df
+    df_search_applied   = search_dataframe(projects_df)
+    # Draw criteria filters and return filtered df
+    df_filters_applied  = filter_dataframe(df_search_applied, ['ID', 'Описание'])
     tab1, tab2 = st.tabs(["Данные", "Аналитика"])
     with tab1:
-        st.dataframe(projects_df_filtered)
-        csv = convert_df(projects_df_filtered)
+        st.dataframe(df_filters_applied)
+        csv = convert_df(df_filters_applied)
         st.download_button('Скачать таблицу', data=csv, file_name="fessboard_slice.csv", mime='text/csv', )
     with tab2:
         st.write('какая-то аналитика')
-    # Кнопка фидбека
+    # Feedback btn
     st.sidebar.button(label='Сообщить об ошибке')
 
 if __name__ == "__main__":
