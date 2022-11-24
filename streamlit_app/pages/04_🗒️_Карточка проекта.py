@@ -164,7 +164,7 @@ def run():
             #### На данной странице можно ознакомиться со всей информацией по выбранному проекту!
             ''')
     # Draw search filters and return filtered df
-    st.error('Илья пока думу думает над этой страницей')
+    st.error('В разработке...')
 
 if __name__ == "__main__":
     setup.page_config(layout='centered', title='Поиск проектов')
