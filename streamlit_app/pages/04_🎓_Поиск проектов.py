@@ -116,7 +116,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
                         # Treat columns with < 10 unique values as categorical
-            elif is_categorical_dtype(df[column]) or df[column].nunique() < 30:
+            elif is_categorical_dtype(df[column]) or df[column].nunique() < 100:
                 options = df[column].unique()
                 user_cat_input = right.multiselect(
                     f"{column}",
