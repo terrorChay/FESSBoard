@@ -165,7 +165,7 @@ def run():
             :mag: __Поиск по проектам__ выводит проекты, в которых фигурирует введенный текст.  
             :art: __Параметры фильтрации__ выводят проекты, которые удовлетворяют заданным параметрам.\n
             :sunglasses: Поиск и фильтры можно использовать вместе!  
-            :floppy_disk: Вы также можете скачать составленную выборку в формате .CSV (совместимо с Microsoft Excel)!
+            :floppy_disk: Вы также можете скачать составленную выборку в формате Microsoft Excel.
             ''')
     # Draw search filters and return filtered df
     df_search_applied   = search_dataframe(projects_df)
