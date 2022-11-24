@@ -149,7 +149,7 @@ def convert_df(df: pd.DataFrame, to_excel=False):
         worksheet = writer.sheets['FESSBoard']
         format1 = workbook.add_format({'num_format': '0.00'}) 
         worksheet.set_column('A:A', None, format1)  
-        writer.save()
+        workbook.close()
         processed_data = output.getvalue()
     else:
         processed_data = df.to_csv().encode('utf-8')
