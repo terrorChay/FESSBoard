@@ -1,9 +1,10 @@
 # Core
 streamlit
+pyxlsb
+xlsxwriter
 
 # Extra visualization
 plotly
-streamlit-elements
 
 # DB connection
 mysql-connector-python

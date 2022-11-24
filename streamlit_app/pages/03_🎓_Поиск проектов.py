@@ -4,6 +4,9 @@ import streamlit_setup as setup
 import pandas as pd
 import numpy as np
 import re
+from io import BytesIO
+from pyxlsb import open_workbook as open_xlsb
+import xlsxwriter
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
@@ -137,8 +140,20 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
     return df
 
 @st.experimental_memo
-def convert_df(df):
-    return df.to_csv().encode('utf-8')
+def convert_df(df: pd.DataFrame, to_excel=False):
+    if to_excel:
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        df.to_excel(writer, index=False, sheet_name='FESSBoard')
+        workbook = writer.book
+        worksheet = writer.sheets['FESSBoard']
+        format1 = workbook.add_format({'num_format': '0.00'}) 
+        worksheet.set_column('A:A', None, format1)  
+        writer.save()
+        processed_data = output.getvalue()
+    else:
+        processed_data = df.to_csv().encode('utf-8')
+    return processed_data
 
 # App launch
 def run():
@@ -162,8 +177,9 @@ def run():
             tab1, tab2 = st.tabs(["Данные", "Аналитика"])
             with tab1:
                 st.dataframe(df_filters_applied)
-                csv = convert_df(df_filters_applied)
-                st.download_button('Скачать таблицу', data=csv, file_name="fessboard_slice.csv", mime='text/csv', )
+                col1, col2, col3 = st.columns([.6, .6, 2])
+                col1.download_button('Скачать CSV', data=convert_df(df_filters_applied), file_name="fessboard_slice.csv", mime='text/csv')
+                col2.download_button('Скачать XLSX', data=convert_df(df_filters_applied, True), file_name="fessboard_slice.xlsx")
             with tab2:
                 st.write('какая-то аналитика')
             # Feedback btn
