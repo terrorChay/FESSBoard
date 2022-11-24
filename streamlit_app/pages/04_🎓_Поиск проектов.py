@@ -152,17 +152,25 @@ def run():
             ''')
     # Draw search filters and return filtered df
     df_search_applied   = search_dataframe(projects_df)
-    # Draw criteria filters and return filtered df
-    df_filters_applied  = filter_dataframe(df_search_applied, ['ID', 'Описание'])
-    tab1, tab2 = st.tabs(["Данные", "Аналитика"])
-    with tab1:
-        st.dataframe(df_filters_applied)
-        csv = convert_df(df_filters_applied)
-        st.download_button('Скачать таблицу', data=csv, file_name="fessboard_slice.csv", mime='text/csv', )
-    with tab2:
-        st.write('какая-то аналитика')
-    # Feedback btn
-    st.sidebar.button(label='Сообщить об ошибке')
+    # if search has results -> draw criteria filters and return filtered df
+    if df_search_applied.shape[0] > 0:
+        df_filters_applied  = filter_dataframe(df_search_applied, ['ID', 'Описание'])
+        # if filters have results -> draw DF, download btn and analytics
+        if df_filters_applied.shape[0] > 0:
+            tab1, tab2 = st.tabs(["Данные", "Аналитика"])
+            with tab1:
+                st.dataframe(df_filters_applied)
+                csv = convert_df(df_filters_applied)
+                st.download_button('Скачать таблицу', data=csv, file_name="fessboard_slice.csv", mime='text/csv', )
+            with tab2:
+                st.write('какая-то аналитика')
+            # Feedback btn
+            st.sidebar.button(label='Сообщить об ошибке')
+        else:
+            # Technically only possible with long string criteria filters cuz they allow for any string input
+            st.warning('Проекты не найдены')
+    else:
+        st.warning('Проекты не найдены')
 
 if __name__ == "__main__":
     setup.page_config(layout='centered', title='Поиск проектов')
