@@ -115,8 +115,8 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                     user_date_input = tuple(map(pd.to_datetime, user_date_input))
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
-                        # Treat columns with < 10 unique values as categorical
-            elif is_categorical_dtype(df[column]) or df[column].nunique() < 100:
+            # use selectbox for instances where there are < 10 unique vals or where max len option is < 255
+            elif is_categorical_dtype(df[column]) or df[column].nunique() < 10 or df[column].map(len).max() < 255:
                 options = df[column].unique()
                 user_cat_input = right.multiselect(
                     f"{column}",
@@ -156,7 +156,7 @@ def run():
     df_search_applied   = search_dataframe(projects_df)
     # if search has results -> draw criteria filters and return filtered df
     if df_search_applied.shape[0] > 0:
-        df_filters_applied  = filter_dataframe(df_search_applied, ['ID', 'Описание'])
+        df_filters_applied  = filter_dataframe(df_search_applied, ['ID'])
         # if filters have results -> draw DF, download btn and analytics
         if df_filters_applied.shape[0] > 0:
             tab1, tab2 = st.tabs(["Данные", "Аналитика"])
