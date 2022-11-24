@@ -38,3 +38,33 @@ class UniForm(forms.ModelForm):
         self.fields['university_region'] = forms.ModelChoiceField(queryset=Regions.objects.all(),
                                                              to_field_name='region',
                                                              empty_label='Its location')
+
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Projects
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(ProjectForm, self).__init__(*args, **kwargs)
+        self.fields['project_grade'] = forms.ModelChoiceField(queryset=ProjectGrades.objects.all(),
+                                                             to_field_name='grade',
+                                                             empty_label='Select project grade')
+        self.fields['project_field'] = forms.ModelChoiceField(queryset=ProjectFields.objects.all(),
+                                                             to_field_name='field',
+                                                             empty_label='Select project field')
+        self.fields['project_company'] = forms.ModelChoiceField(queryset=Companies.objects.all(),
+                                                              to_field_name='company_name',
+                                                              empty_label='Select project company')
+
+
+class TeachersInProjectForm(forms.ModelForm):
+    class Meta:
+        model = TeachersInProjects
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(TeachersInProjectForm, self).__init__(*args, **kwargs)
+        self.fields['project_teacher'] = forms.ModelChoiceField(queryset=TeachersInProjects.objects.all(),
+                                                             to_field_name='teacher_surname',
+                                                             empty_label='Select a teacher')

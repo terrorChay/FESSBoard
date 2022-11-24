@@ -13,7 +13,7 @@ class Companies(models.Model):
         db_table = 'companies'
 
     def __str__(self):
-        return ""
+        return "%s" % self.company_name
 
 class CompanySpheres(models.Model):
     company_sphere_id = models.AutoField(primary_key=True)
@@ -96,6 +96,9 @@ class ProjectFields(models.Model):
         managed = False
         db_table = 'project_fields'
 
+    def __str__(self):
+        return "%s" % self.field
+
 
 class ProjectGrades(models.Model):
     grade_id = models.AutoField(primary_key=True)
@@ -104,6 +107,9 @@ class ProjectGrades(models.Model):
     class Meta:
         managed = False
         db_table = 'project_grades'
+
+    def __str__(self):
+        return "%s" % self.grade
 
 
 class ProjectGroups(models.Model):
@@ -124,6 +130,9 @@ class ProjectManagers(models.Model):
     class Meta:
         managed = False
         db_table = 'project_managers'
+
+    def __str__(self):
+        return "%s" % self.student
 
 
 class Projects(models.Model):
@@ -193,6 +202,9 @@ class Teachers(models.Model):
         managed = False
         db_table = 'teachers'
 
+    def __str__(self):
+        return "%s" % self.teacher_surname
+
 
 class TeachersInEvents(models.Model):
     teacher = models.ForeignKey(Teachers, models.DO_NOTHING)
@@ -204,8 +216,8 @@ class TeachersInEvents(models.Model):
 
 
 class TeachersInProjects(models.Model):
-    teacher = models.ForeignKey(Teachers, models.DO_NOTHING)
-    project = models.ForeignKey(Projects, models.DO_NOTHING)
+    teacher_id = models.ForeignKey(Teachers, models.DO_NOTHING)
+    project_id = models.ForeignKey(Projects, models.DO_NOTHING)
 
     class Meta:
         managed = False

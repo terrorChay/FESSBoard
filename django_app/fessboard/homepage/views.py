@@ -40,3 +40,14 @@ def Render_UniForm(request):
     else:
         form = UniForm()
     return render(request, 'index.html', {'form': form})
+
+
+def Render_ProjectForm(request):
+    form = ProjectForm(request.POST or None)
+    if request.method == 'POST':
+        form.save()
+        messages.success(request, "Form saved successfully!")
+        return HttpResponseRedirect('/')
+    else:
+        form = ProjectForm()
+    return render(request, 'index.html', {'form': form})
