@@ -82,8 +82,8 @@ def load_projects():
                 ON projects.project_id = T6.project_id;
             """
     projects_df = query_data(query)
-    # projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
-    # projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
+    projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
+    projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
     projects_df['ID']               = pd.to_numeric(projects_df['ID'])
     return projects_df
 
@@ -107,15 +107,15 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
     df = df.copy()
 
     # Try to convert datetimes into a standard format (datetime, no timezone)
-    for col in df.columns:
-        if is_object_dtype(df[col]):
-            try:
-                df[col] = pd.to_datetime(df[col], format='%Y-%m-%d')
-            except Exception:
-                pass
+    # for col in df.columns:
+    #     if is_object_dtype(df[col]):
+    #         try:
+    #             df[col] = pd.to_datetime(df[col], format='%Y-%m-%d')
+    #         except Exception:
+    #             pass
 
-        if is_datetime64_any_dtype(df[col]):
-            df[col] = df[col].dt.tz_localize(None)
+    #     if is_datetime64_any_dtype(df[col]):
+    #         df[col] = df[col].dt.tz_localize(None)
 
     modification_container = st.container()
 
