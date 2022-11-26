@@ -150,7 +150,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
             # use selectbox for instances where there are < 10 unique vals or where max len option is < 255
-            elif is_categorical_dtype(df[column]) or df[column].nunique() < 10 or df[column].map(len).max() < 255:
+            elif (is_categorical_dtype(df[column]) or df[column].nunique() < 10 or df[column].map(len).max() < 255) and ('азвание' not in df[column].name):
                 options = df[column].unique()
                 user_cat_input = right.multiselect(
                     f"{column}",
