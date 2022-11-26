@@ -27,29 +27,60 @@ def query_data(query):
 # Load projects dataset
 @st.experimental_memo
 def load_projects():
-    query   =   """
-                SELECT
-                    projects.project_id 'ID',
-                    companies.company_name 'Заказчик',
-                    company_types.company_type 'Тип компании',
-                    projects.project_name 'Название',
-                    projects.project_description 'Описание',
-                    projects.project_result 'Результат',
-                    projects.project_start_date 'Дата начала',
-                    projects.project_end_date 'Дата окончания',
-                    project_grades.grade 'Грейд',
-                    project_fields.field 'Направление',
-                    projects.is_frozen 'Заморожен'
-                FROM projects 
-                LEFT JOIN project_grades
-                    ON projects.project_grade   = project_grades.grade_id
-                LEFT JOIN project_fields
-                    ON projects.project_field   = project_fields.field_id
-                LEFT JOIN (companies
-                            LEFT JOIN company_types
-                                ON companies.company_type = company_types.company_type_id)
-                    ON projects.project_company = companies.company_id;
-                """
+    query = """
+            SELECT
+                projects.project_id AS 'ID',
+                T1.company_name AS 'Заказчик',
+                T2.company_type AS 'Тип компании',
+                T3.company_sphere AS 'Отрасль',
+                projects.project_name AS 'Название',
+                projects.project_description AS 'Описание',
+                projects.project_result AS 'Результат',
+                projects.project_start_date AS 'Дата начала',
+                projects.project_end_date AS 'Дата окончания',
+                project_grades.grade AS 'Грейд',
+                project_fields.field AS 'Направление',
+                CONCAT_WS(
+                    ' ',
+                    T5.student_surname,
+                    T5.student_name,
+                    T5.student_midname) AS 'Менеджер проекта',
+                CONCAT_WS(
+                    ' ',
+                    T7.teacher_surname,
+                    T7.teacher_name,
+                    T7.teacher_midname) AS 'Курирующий преподаватель',
+                projects.is_frozen AS 'Заморожен'
+            FROM projects 
+            LEFT JOIN project_grades
+                ON projects.project_grade   = project_grades.grade_id
+            LEFT JOIN project_fields
+                ON projects.project_field   = project_fields.field_id
+            LEFT JOIN   (
+                            (SELECT companies.company_id, companies.company_name, companies.company_type, companies.company_sphere FROM companies) AS T1
+                                LEFT JOIN 
+                                    (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
+                                    ON T1.company_type = T2.company_type_id
+                                LEFT JOIN
+                                    (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
+                                    ON T1.company_sphere = T3.company_sphere_id
+                        )
+                ON projects.project_company = T1.company_id
+            LEFT JOIN   (
+                            (SELECT project_managers.project_id, project_managers.student_id FROM project_managers) AS T4
+                                LEFT JOIN
+                                    (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname FROM students) AS T5
+                                    ON T4.student_id = T5.student_id
+                        )
+                ON projects.project_id = T4.project_id
+            LEFT JOIN   (
+                            (SELECT teachers_in_projects.project_id, teachers_in_projects.teacher_id FROM teachers_in_projects) AS T6
+                                LEFT JOIN
+                                    (SELECT teachers.teacher_id, teachers.teacher_surname, teachers.teacher_name, teachers.teacher_midname FROM teachers) AS T7
+                                    ON T6.teacher_id = T7.teacher_id
+                        )
+                ON projects.project_id = T6.project_id;
+            """
     projects_df = query_data(query)
     projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
     projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
