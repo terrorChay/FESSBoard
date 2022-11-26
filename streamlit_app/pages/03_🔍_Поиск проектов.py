@@ -110,7 +110,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
     for col in df.columns:
         if is_object_dtype(df[col]):
             try:
-                df[col] = pd.to_datetime(df[col])
+                df[col] = pd.to_datetime(df[col], format='%Y-%m-%d')
             except Exception:
                 pass
 
