@@ -82,8 +82,8 @@ def load_projects():
                 ON projects.project_id = T6.project_id;
             """
     projects_df = query_data(query)
-    projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
-    projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
+    # projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
+    # projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
     projects_df['ID']               = pd.to_numeric(projects_df['ID'])
     return projects_df
 
