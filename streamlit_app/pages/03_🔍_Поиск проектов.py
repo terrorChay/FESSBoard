@@ -222,6 +222,6 @@ def run():
         st.warning('Проекты не найдены')
 
 if __name__ == "__main__":
-    setup.page_config(layout='centered', title='Поиск проектов')
+    setup.page_config(layout='wide', title='Поиск проектов')
     setup.remove_footer()
     run()
