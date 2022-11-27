@@ -82,17 +82,6 @@ def load_projects():
                 ON projects.project_id = T6.project_id;
             """
     projects_df = query_data(query)
-    # Try to convert datetimes into a standard format (datetime, no timezone)
-    for col in projects_df.columns:
-        if is_object_dtype(projects_df[col]):
-            try:
-                projects_df[col] = pd.to_datetime(projects_df[col])
-            except Exception:
-                pass
-
-        if is_datetime64_any_dtype(projects_df[col]):
-            projects_df[col] = projects_df[col].dt.tz_localize(None)
-
     projects_df['ID']               = pd.to_numeric(projects_df['ID'])
     return projects_df
 
@@ -115,6 +104,17 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
 
     df = df.copy()
 
+    # Try to convert datetimes into a standard format (datetime, no timezone)
+    for col in df.columns:
+        if is_object_dtype(df[col]):
+            try:
+                df[col] = pd.to_datetime(df[col])
+            except Exception:
+                pass
+
+        if is_datetime64_any_dtype(df[col]):
+            df[col] = df[col].dt.tz_localize(None)
+    
     modification_container = st.container()
 
     with modification_container:
@@ -166,6 +166,11 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                 if user_text_input:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
 
+    # Try to convert datetimes into displayable date formats
+    for col in df.columns:
+        if is_datetime64_any_dtype(df[col]):
+            df[col] = df[col].dt.strftime('%d-%m-%Y')
+
     return df
 
 @st.experimental_memo
@@ -206,9 +211,8 @@ def run():
             tab1, tab2 = st.tabs(["Данные", "Аналитика"])
             with tab1:
                 st.dataframe(df_filters_applied)
-                col1, col2, col3 = st.columns([.6, .6, 2])
-                col1.download_button('Скачать CSV', data=convert_df(df_filters_applied), file_name="fessboard_slice.csv", mime='text/csv')
-                col2.download_button('Скачать XLSX', data=convert_df(df_filters_applied, True), file_name="fessboard_slice.xlsx")
+                st.download_button('Скачать CSV', data=convert_df(df_filters_applied), file_name="fessboard_slice.csv", mime='text/csv')
+                st.download_button('Скачать XLSX', data=convert_df(df_filters_applied, True), file_name="fessboard_slice.xlsx")
             with tab2:
                 st.write('какая-то аналитика')
             # Feedback btn
