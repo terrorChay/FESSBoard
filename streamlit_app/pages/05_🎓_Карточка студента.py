@@ -159,9 +159,9 @@ def convert_df(df: pd.DataFrame, to_excel=False):
 def run():
     # Load dataframe
     projects_df = load_projects()
-    st.title('Карточка проекта')
+    st.title('Карточка студента')
     st.write('''
-            #### На данной странице можно ознакомиться со всей информацией по выбранному проекту!
+            #### На данной странице можно ознакомиться со всей информацией по выбранному студенту!
             ''')
     # Draw search filters and return filtered df
     st.error('В разработке...')
