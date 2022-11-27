@@ -86,7 +86,7 @@ def load_projects():
     for col in projects_df.columns:
         if is_object_dtype(projects_df[col]):
             try:
-                projects_df[col] = pd.to_datetime(projects_df[col]).dt.strftime("%Y-%m-%d")
+                projects_df[col] = pd.to_datetime(projects_df[col])
             except Exception:
                 pass
 
