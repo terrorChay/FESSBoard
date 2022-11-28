@@ -35,7 +35,7 @@ class UniForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(UniForm, self).__init__(*args, **kwargs)
-        self.fields['university_region'] = forms.ModelChoiceField(queryset=Regions.objects.all(),
+        self.fields['university_region'] = forms.MultipleChoiceField(queryset=Regions.objects.all(),
                                                              to_field_name='region',
                                                              empty_label='Its location')
 
@@ -44,6 +44,9 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Projects
         fields = '__all__'
+        widgets = {
+            'is_frozen': forms.RadioSelect(choices=[('1', 'true'), ('0', 'false')])
+        }
 
     def __init__(self, *args, **kwargs):
         super(ProjectForm, self).__init__(*args, **kwargs)
@@ -61,10 +64,44 @@ class ProjectForm(forms.ModelForm):
 class TeachersInProjectForm(forms.ModelForm):
     class Meta:
         model = TeachersInProjects
-        fields = '__all__'
+        fields = 'teacher_id',
 
     def __init__(self, *args, **kwargs):
         super(TeachersInProjectForm, self).__init__(*args, **kwargs)
-        self.fields['project_teacher'] = forms.ModelChoiceField(queryset=TeachersInProjects.objects.all(),
-                                                             to_field_name='teacher_surname',
-                                                             empty_label='Select a teacher')
+        self.fields['teacher_id'] = forms.ModelMultipleChoiceField(queryset=Teachers.objects.all(),
+                                                             # to_field_name='teacher_surname'
+                                                                   )
+
+
+class ProjectManagersForm(forms.ModelForm):
+    class Meta:
+        model = ProjectManagers
+        fields = 'student',
+
+    def __init__(self, *args, **kwargs):
+        super(ProjectManagersForm, self).__init__(*args, **kwargs)
+        self.fields['student'] = forms.ModelMultipleChoiceField(queryset=Students.objects.all(),
+                                                                to_field_name='student_surname')
+
+
+class CuratorForm(forms.ModelForm):
+    class Meta:
+        model = Groups
+        fields = 'curator',
+
+    def __init__(self, *args, **kwargs):
+        super(CuratorForm, self).__init__(*args, **kwargs)
+        self.fields['curator'] = forms.ModelChoiceField(queryset=Students.objects.all(),
+                                                        to_field_name='student_surname',
+                                                        empty_label='Select a curator')
+
+
+class StudentsInGroupsForm(forms.ModelForm):
+    class Meta:
+        model = StudentsInGroups
+        fields = 'student',
+
+    def __init__(self, *args, **kwargs):
+        super(StudentsInGroupsForm, self).__init__(*args, **kwargs)
+        self.fields['student'] = forms.ModelMultipleChoiceField(queryset=Students.objects.all(),
+                                                                to_field_name='student_surname')

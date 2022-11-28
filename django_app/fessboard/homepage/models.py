@@ -121,18 +121,6 @@ class ProjectGroups(models.Model):
         db_table = 'project_groups'
 
 
-class ProjectManagers(models.Model):
-    project = models.ForeignKey('Projects', models.DO_NOTHING)
-    student = models.ForeignKey('Students', models.DO_NOTHING)
-    is_coordinator = models.IntegerField()
-    is_moderator = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'project_managers'
-
-    def __str__(self):
-        return "%s" % self.student
 
 
 class Projects(models.Model):
@@ -180,6 +168,9 @@ class Students(models.Model):
         managed = False
         db_table = 'students'
 
+    def __str__(self):
+        return "%s" % self.student_surname
+
 
 class StudentsInGroups(models.Model):
     group = models.ForeignKey(Groups, models.DO_NOTHING)
@@ -189,6 +180,19 @@ class StudentsInGroups(models.Model):
         managed = False
         db_table = 'students_in_groups'
 
+
+class ProjectManagers(models.Model):
+    project = models.ForeignKey(Projects, models.DO_NOTHING)
+    student = models.ForeignKey(Students, models.DO_NOTHING)
+    is_coordinator = models.IntegerField()
+    is_moderator = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'project_managers'
+
+    def __str__(self):
+        return "%s" % self.student
 
 class Teachers(models.Model):
     teacher_id = models.AutoField(primary_key=True)
@@ -222,6 +226,9 @@ class TeachersInProjects(models.Model):
     class Meta:
         managed = False
         db_table = 'teachers_in_projects'
+
+    def __str__(self):
+        return ""
 
 
 class Regions(models.Model):
