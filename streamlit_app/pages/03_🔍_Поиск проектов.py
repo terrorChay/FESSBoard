@@ -153,11 +153,13 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
             left, right = st.columns((1, 20))
             left.write("└")
             if 'Менеджер' in df[column].name or 'Курирующий' in df[column].name:
-                user_text_input = right.text_input(
+                options = pd.Series([x for _list in df[column][df[column].notna()] for x in _list]).unique()
+                user_cat_input = right.multiselect(
                     f"{column}",
+                    options,
                 )
-                if user_text_input:
-                    df = df[df[column].astype(str).str.contains(user_text_input)]
+                if user_cat_input:
+                    df = df[df[column].astype(str).str.contains('|'.join(user_cat_input))]
             elif is_numeric_dtype(df[column]):
                 _min = float(df[column].min())
                 _max = float(df[column].max())
@@ -186,19 +188,17 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                 options = df[column].unique()
                 user_cat_input = right.multiselect(
                     f"{column}",
-                    options
+                    options,
                 )
-                if user_cat_input == []:
-                    _cat_input = df[column].unique()
-                else:
+                if user_cat_input:
                     _cat_input = user_cat_input
-                df = df[df[column].isin(_cat_input)]
+                    df = df[df[column].isin(_cat_input)]
             else:
                 user_text_input = right.text_input(
                     f"{column}",
                 )
                 if user_text_input:
-                    df = df[df[column].astype(str).str.contains(user_text_input)]
+                    df = df[df[column].astype(str).str.contains(user_text_input, na=False, flags=re.IGNORECASE)]
 
     # Try to convert datetimes into displayable date formats
     for col in df.columns:
