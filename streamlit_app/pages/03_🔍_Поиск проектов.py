@@ -82,7 +82,7 @@ def load_projects():
                 ON projects.project_id = T6.project_id;
             """
     projects_df = query_data(query)
-    projects_df['ID']               = pd.to_numeric(projects_df['ID'])
+    projects_df.set_index('ID', drop=True, inplace=True)
     return projects_df
 
 # Apply search filters and return filtered dataset
@@ -205,7 +205,7 @@ def run():
     df_search_applied   = search_dataframe(projects_df)
     # if search has results -> draw criteria filters and return filtered df
     if df_search_applied.shape[0]:
-        df_filters_applied  = filter_dataframe(df_search_applied, ['ID'])
+        df_filters_applied  = filter_dataframe(df_search_applied, ['Заморожен'])
         # if filters have results -> draw DF, download btn and analytics
         if df_filters_applied.shape[0]:
             tab1, tab2 = st.tabs(["Данные", "Аналитика"])
