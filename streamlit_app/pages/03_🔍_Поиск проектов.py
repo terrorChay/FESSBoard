@@ -67,7 +67,7 @@ def load_projects():
                         )
                 ON projects.project_company = T1.company_id
             LEFT JOIN   (
-                            (SELECT project_managers.project_id, project_managers.student_id FROM project_managers) AS T4
+                            (SELECT managers_in_projects.project_id, managers_in_projects.student_id FROM managers_in_projects) AS T4
                                 LEFT JOIN
                                     (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname FROM students) AS T5
                                     ON T4.student_id = T5.student_id
