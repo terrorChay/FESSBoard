@@ -56,89 +56,6 @@ def load_projects():
     projects_df['ID']               = pd.to_numeric(projects_df['ID'])
     return projects_df
 
-# Apply search filters and return filtered dataset
-def search_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-
-    df = df.copy()
-
-    user_text_input = st.text_input(f"Поиск по проектам", help='Укажите текст, который могут содержать интересующие Вас проекты')
-
-    if user_text_input:
-        _user_text_input = "".join([char for char in user_text_input if char.isalnum()])
-        mask = df.apply(lambda x: x.astype(str).str.contains(_user_text_input, na=False, flags=re.IGNORECASE))
-        df = df.loc[mask.any(axis=1)]
-
-    return df
-
-# Apply filters and return filtered dataset
-def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
-
-    df = df.copy()
-
-    # Try to convert datetimes into a standard format (datetime, no timezone)
-    for col in df.columns:
-        if is_object_dtype(df[col]):
-            try:
-                df[col] = pd.to_datetime(df[col])
-            except Exception:
-                pass
-
-        if is_datetime64_any_dtype(df[col]):
-            df[col] = df[col].dt.tz_localize(None)
-
-    modification_container = st.container()
-
-    with modification_container:
-        cols = [col for col in df.columns if col not in cols_to_ignore]
-        to_filter_columns = st.multiselect("Параметры фильтрации", cols)
-        for column in to_filter_columns:
-            left, right = st.columns((1, 20))
-            left.write("└")
-            if is_numeric_dtype(df[column]):
-                _min = float(df[column].min())
-                _max = float(df[column].max())
-                step = (_max - _min) / 100
-                user_num_input = right.slider(
-                    f" {column}",
-                    min_value=_min,
-                    max_value=_max,
-                    value=(_min, _max),
-                    step=step,
-                )
-                df = df[df[column].between(*user_num_input)]
-            elif is_datetime64_any_dtype(df[column]):
-                user_date_input = right.date_input(
-                    f" {column}",
-                    value=(
-                        df[column].min(),
-                        df[column].max(),
-                    ),
-                )
-                if len(user_date_input) == 2:
-                    user_date_input = tuple(map(pd.to_datetime, user_date_input))
-                    start_date, end_date = user_date_input
-                    df = df.loc[df[column].between(start_date, end_date)]
-            # use selectbox for instances where there are < 10 unique vals or where max len option is < 255
-            elif is_categorical_dtype(df[column]) or df[column].nunique() < 10 or df[column].map(len).max() < 255:
-                options = df[column].unique()
-                user_cat_input = right.multiselect(
-                    f"{column}",
-                    options
-                )
-                if user_cat_input == []:
-                    _cat_input = df[column].unique()
-                else:
-                    _cat_input = user_cat_input
-                df = df[df[column].isin(_cat_input)]
-            else:
-                user_text_input = right.text_input(
-                    f"{column}",
-                )
-                if user_text_input:
-                    df = df[df[column].astype(str).str.contains(user_text_input)]
-
-    return df
-
 @st.experimental_memo
 def convert_df(df: pd.DataFrame, to_excel=False):
     if to_excel:
@@ -159,14 +76,14 @@ def convert_df(df: pd.DataFrame, to_excel=False):
 def run():
     # Load dataframe
     projects_df = load_projects()
-    st.title('Карточка студента')
+    st.title('Портфолио компании')
     st.write('''
-            #### На данной странице можно ознакомиться со всей информацией по выбранному студенту!
+            #### На данной странице можно ознакомиться с портфелем проектов выбранной компании!
             ''')
     # Draw search filters and return filtered df
     st.error('В разработке...')
 
 if __name__ == "__main__":
-    setup.page_config(layout='centered', title='Поиск проектов')
+    setup.page_config(layout='centered', title='Портфолио компании')
     setup.remove_footer()
     run()
