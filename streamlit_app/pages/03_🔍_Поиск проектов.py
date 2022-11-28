@@ -27,61 +27,90 @@ def query_data(query):
 # Load projects dataset
 @st.experimental_memo
 def load_projects():
-    query = """
-            SELECT
-                projects.project_id AS 'ID',
-                T1.company_name AS 'Заказчик',
-                T2.company_type AS 'Тип компании',
-                T3.company_sphere AS 'Отрасль',
-                projects.project_name AS 'Название',
-                projects.project_description AS 'Описание',
-                projects.project_result AS 'Результат',
-                projects.project_start_date AS 'Дата начала',
-                projects.project_end_date AS 'Дата окончания',
-                project_grades.grade AS 'Грейд',
-                project_fields.field AS 'Направление',
-                CONCAT_WS(
-                    ' ',
-                    T5.student_surname,
-                    T5.student_name,
-                    T5.student_midname) AS 'Менеджер проекта',
-                CONCAT_WS(
-                    ' ',
-                    T7.teacher_surname,
-                    T7.teacher_name,
-                    T7.teacher_midname) AS 'Курирующий преподаватель',
-                projects.is_frozen AS 'Заморожен'
-            FROM projects 
-            LEFT JOIN project_grades
-                ON projects.project_grade   = project_grades.grade_id
-            LEFT JOIN project_fields
-                ON projects.project_field   = project_fields.field_id
-            LEFT JOIN   (
-                            (SELECT companies.company_id, companies.company_name, companies.company_type, companies.company_sphere FROM companies) AS T1
-                                LEFT JOIN 
-                                    (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
-                                    ON T1.company_type = T2.company_type_id
-                                LEFT JOIN
-                                    (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
-                                    ON T1.company_sphere = T3.company_sphere_id
-                        )
-                ON projects.project_company = T1.company_id
-            LEFT JOIN   (
-                            (SELECT managers_in_projects.project_id, managers_in_projects.student_id FROM managers_in_projects) AS T4
-                                LEFT JOIN
-                                    (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname FROM students) AS T5
-                                    ON T4.student_id = T5.student_id
-                        )
-                ON projects.project_id = T4.project_id
-            LEFT JOIN   (
-                            (SELECT teachers_in_projects.project_id, teachers_in_projects.teacher_id FROM teachers_in_projects) AS T6
-                                LEFT JOIN
-                                    (SELECT teachers.teacher_id, teachers.teacher_surname, teachers.teacher_name, teachers.teacher_midname FROM teachers) AS T7
-                                    ON T6.teacher_id = T7.teacher_id
-                        )
-                ON projects.project_id = T6.project_id;
-            """
-    projects_df = query_data(query)
+    query_i =   """
+                SELECT
+                    projects.project_id AS 'ID',
+                    T1.company_name AS 'Заказчик',
+                    T2.company_type AS 'Тип компании',
+                    T3.company_sphere AS 'Отрасль',
+                    projects.project_name AS 'Название',
+                    projects.project_description AS 'Описание',
+                    projects.project_result AS 'Результат',
+                    projects.project_start_date AS 'Дата начала',
+                    projects.project_end_date AS 'Дата окончания',
+                    project_grades.grade AS 'Грейд',
+                    project_fields.field AS 'Направление',
+                    projects.is_frozen AS 'Заморожен'
+                FROM projects 
+                LEFT JOIN project_grades
+                    ON projects.project_grade   = project_grades.grade_id
+                LEFT JOIN project_fields
+                    ON projects.project_field   = project_fields.field_id
+                LEFT JOIN   (
+                                (SELECT companies.company_id, companies.company_name, companies.company_type, companies.company_sphere FROM companies) AS T1
+                                    LEFT JOIN 
+                                        (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
+                                        ON T1.company_type = T2.company_type_id
+                                    LEFT JOIN
+                                        (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
+                                        ON T1.company_sphere = T3.company_sphere_id
+                            )
+                    ON projects.project_company = T1.company_id;
+                """
+    query_j =   """
+                SELECT
+                    projects.project_id AS 'ID',
+                    CONCAT_WS(
+                        ' ',
+                        T5.student_surname,
+                        T5.student_name,
+                        T5.student_midname) AS 'Менеджер проекта'
+                FROM projects 
+                LEFT JOIN   (
+                                (SELECT managers_in_projects.project_id, managers_in_projects.student_id FROM managers_in_projects) AS T4
+                                    LEFT JOIN
+                                        (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname FROM students) AS T5
+                                        ON T4.student_id = T5.student_id
+                            )
+                    ON projects.project_id = T4.project_id;
+                """
+    query_k =   """
+                SELECT
+                    projects.project_id AS 'ID',
+                    CONCAT_WS(
+                        ' ',
+                        T7.teacher_surname,
+                        T7.teacher_name,
+                        T7.teacher_midname) AS 'Курирующий преподаватель'
+                FROM projects 
+                LEFT JOIN   (
+                                (SELECT teachers_in_projects.project_id, teachers_in_projects.teacher_id FROM teachers_in_projects) AS T6
+                                    LEFT JOIN
+                                        (SELECT teachers.teacher_id, teachers.teacher_surname, teachers.teacher_name, teachers.teacher_midname FROM teachers) AS T7
+                                        ON T6.teacher_id = T7.teacher_id
+                            )
+                    ON projects.project_id = T6.project_id;
+                """
+    # Projects dataframe (no many-to-many relations)
+    projects_df = query_data(query_i)
+
+    # Managers dataframe (many-to-many relations)
+    managers_df = query_data(query_j)
+    managers_df.replace('', np.nan, inplace=True)
+    managers_df.dropna(inplace=True)
+    managers_df = managers_df.groupby(['ID'])['Менеджер проекта'].apply(list).reset_index()
+
+    # Teachers dataframe (many-to-many relations)
+    teachers_df = query_data(query_k)
+    teachers_df.replace('', np.nan, inplace=True)
+    teachers_df.dropna(inplace=True)
+    teachers_df = teachers_df.groupby(['ID'])['Курирующий преподаватель'].apply(list).reset_index()
+
+    # Left join dataframes
+    projects_df = projects_df.merge(managers_df, on='ID', how='left')
+    projects_df = projects_df.merge(teachers_df, on='ID', how='left')
+
+    # Set project ID as dataframe index
     projects_df.set_index('ID', drop=True, inplace=True)
     return projects_df
 
@@ -123,7 +152,13 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
         for column in to_filter_columns:
             left, right = st.columns((1, 20))
             left.write("└")
-            if is_numeric_dtype(df[column]):
+            if 'Менеджер' in df[column].name or 'Курирующий' in df[column].name:
+                user_text_input = right.text_input(
+                    f"{column}",
+                )
+                if user_text_input:
+                    df = df[df[column].astype(str).str.contains(user_text_input)]
+            elif is_numeric_dtype(df[column]):
                 _min = float(df[column].min())
                 _max = float(df[column].max())
                 step = (_max - _min) / 100
@@ -147,8 +182,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                     user_date_input = tuple(map(pd.to_datetime, user_date_input))
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
-            # use selectbox for instances where there are < 10 unique vals or where max len option is < 255
-            elif (is_categorical_dtype(df[column]) or df[column].nunique() < 10 or df[column].map(len).max() < 255) and ('азвание' not in df[column].name):
+            elif (is_categorical_dtype(df[column]) or df[column].nunique() < 10 or df[column].map(len).max() < 255) and ('Название' not in df[column].name):
                 options = df[column].unique()
                 user_cat_input = right.multiselect(
                     f"{column}",
