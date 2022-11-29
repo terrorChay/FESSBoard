@@ -15,6 +15,7 @@ class Companies(models.Model):
     def __str__(self):
         return ""
 
+
 class CompanySpheres(models.Model):
     company_sphere_id = models.AutoField(primary_key=True)
     company_sphere = models.CharField(max_length=255)

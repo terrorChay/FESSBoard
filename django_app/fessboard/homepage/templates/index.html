@@ -6,7 +6,8 @@
         <form method="post" class="card p-3 mt-5" style="width: 95%; font-size: 14px">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="sumbit" class="btn btn-primary">Sumbit</button>
+            <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+            <a class="btn btn-close btn-lg" href="{% url 'company-hub' %}">Cancel</a>
         </form>
     </div>
 </html>
