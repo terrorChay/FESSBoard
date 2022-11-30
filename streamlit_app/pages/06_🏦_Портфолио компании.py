@@ -272,10 +272,20 @@ def company_selection(df: pd.DataFrame):
                 if user_cat_input:
                     df = df[df[column].isin(user_cat_input)]
         options = np.insert(df['Заказчик'].unique(), 0, 'Не выбрано', axis=0)
+
+        # Little workaround to preserve selected company in case filters get adjusted
+        preselection = 0
+        if 'company_selectbox' in session:
+            try:
+                preselection = int(np.where(options == session.company_selectbox)[0][0])
+            except:
+                pass
+
         user_cat_input = st.selectbox(
             "Заказчик",
             options,
-            index=0,
+            index=preselection,
+            key='company_selectbox',
         )
         if user_cat_input and user_cat_input != 'Не выбрано':
             company = user_cat_input
