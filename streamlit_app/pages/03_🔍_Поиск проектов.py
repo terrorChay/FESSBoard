@@ -119,7 +119,7 @@ def search_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     df = df.copy()
 
-    user_text_input = st.text_input(f"Поиск по проектам", help='Укажите текст, который могут содержать интересующие Вас проекты')
+    user_text_input = st.text_input(f"Поиск по проектам", placeholder='Введите текст', help='Укажите текст, который могут содержать интересующие Вас проекты')
 
     if user_text_input:
         _user_text_input = "".join([char for char in user_text_input if char.isalnum()])
@@ -225,6 +225,8 @@ def convert_df(df: pd.DataFrame, to_excel=False):
 
 # App launch
 def run():
+    # Feedback btn
+    st.sidebar.button(label='Сообщить об ошибке')
     # Load dataframe
     projects_df = load_projects()
     st.title('Поиск проектов')
@@ -249,8 +251,6 @@ def run():
                 st.download_button('Скачать XLSX', data=convert_df(df_filters_applied, True), file_name="fessboard_slice.xlsx")
             with tab2:
                 st.write('какая-то аналитика')
-            # Feedback btn
-            st.sidebar.button(label='Сообщить об ошибке')
         else:
             # Technically only possible with long string criteria filters cuz they allow for any string input
             st.warning('Проекты не найдены')
