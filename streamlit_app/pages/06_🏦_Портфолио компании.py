@@ -17,7 +17,7 @@ import plotly.express as px
 from connectdb import mysql_conn
 from datetime import date
  
- # Database Query
+# Database Query
 @st.experimental_memo(ttl=600)
 def query_data(query):
     with mysql_conn() as conn:
@@ -324,7 +324,7 @@ def run():
             projects_with_company_df = projects_df.loc[projects_df['Заказчик'] == company]
             # Draw search filters and return filtered df
             df_search_applied   = search_dataframe(projects_with_company_df)
-            # if search has results -> draw criteria filters and return filtered df
+            # if search has results draw dataframe and download buttons
             if df_search_applied.shape[0]:
                 st.dataframe(df_search_applied)
                 st.download_button('Скачать CSV', data=convert_df(df_search_applied), file_name="fessboard_slice.csv", mime='text/csv')
