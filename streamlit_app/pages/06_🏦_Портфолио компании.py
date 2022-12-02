@@ -43,19 +43,19 @@ def load_projects():
                     projects.is_frozen AS 'Заморожен'
                 FROM projects 
                 LEFT JOIN project_grades
-                    ON projects.project_grade   = project_grades.grade_id
+                    ON projects.project_grade_id   = project_grades.grade_id
                 LEFT JOIN project_fields
-                    ON projects.project_field   = project_fields.field_id
+                    ON projects.project_field_id   = project_fields.field_id
                 LEFT JOIN   (
-                                (SELECT companies.company_id, companies.company_name, companies.company_type, companies.company_sphere FROM companies) AS T1
+                                (SELECT companies.company_id, companies.company_name, companies.company_type_id, companies.company_sphere_id FROM companies) AS T1
                                     LEFT JOIN 
                                         (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
-                                        ON T1.company_type = T2.company_type_id
+                                        ON T1.company_type_id = T2.company_type_id
                                     LEFT JOIN
                                         (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
-                                        ON T1.company_sphere = T3.company_sphere_id
+                                        ON T1.company_sphere_id = T3.company_sphere_id
                             )
-                    ON projects.project_company = T1.company_id;
+                    ON projects.project_company_id = T1.company_id;
                 """
     query_j =   """
                 SELECT
