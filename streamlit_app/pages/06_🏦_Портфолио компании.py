@@ -123,13 +123,13 @@ def load_company_data(company: str):
                     T3.company_sphere AS 'Отрасль',
                     T1.company_website AS 'Веб-сайт'
                 FROM    (
-                            (SELECT companies.company_id, companies.company_name, companies.company_type, companies.company_sphere, companies.company_website FROM companies) AS T1
+                            (SELECT companies.company_id, companies.company_name, companies.company_type_id, companies.company_sphere_id, companies.company_website FROM companies) AS T1
                                 LEFT JOIN 
                                     (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
-                                    ON T1.company_type = T2.company_type_id
+                                    ON T1.company_type_id = T2.company_type_id
                                 LEFT JOIN
                                     (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
-                                    ON T1.company_sphere = T3.company_sphere_id
+                                    ON T1.company_sphere_id = T3.company_sphere_id
                         )
                 WHERE
                     company_name = '{company}'
@@ -256,28 +256,37 @@ def company_selection(df: pd.DataFrame):
 
     with modification_container:
         left, right = st.columns(2)
-        for column in df.columns:
-            if 'заказчик' not in df[column].name.casefold():
-                options = df[column].unique()
-                if 'тип' in df[column].name.casefold():
-                    user_cat_input = left.multiselect(
-                        f"{column}",
-                        options,
-                    )
-                else:
-                    user_cat_input = right.multiselect(
-                        f"{column}",
-                        options,
-                    )
-                if user_cat_input:
-                    df = df[df[column].isin(user_cat_input)]
+        # df.columns[1:] so that the company name is not used (its the first col)
+        for idx, column in enumerate(df.columns[1:]):
+            options = df[column].unique()
+            ## preselection tweak to preserve selected filter values in case related filters get adjusted
+            cached_value_key = column+'-input'
+            preselection = []
+            if cached_value_key in session:
+                for i in session[cached_value_key]:
+                    try:
+                        if i in options:
+                            preselection.append(i)
+                    except:
+                        pass
+            ## display every other input field on the right column, others - on the left column
+            col = left if idx % 2 == 0 else right
+            user_cat_input = col.multiselect(
+                f"{column}",
+                options,
+                default=preselection,
+                key=cached_value_key,
+            )
+            if user_cat_input:
+                df = df[df[column].isin(user_cat_input)]
         options = np.insert(df['Заказчик'].unique(), 0, 'Не выбрано', axis=0)
 
-        # Little workaround to preserve selected company in case filters get adjusted
+        # Household name selection
+        ## preselection tweak once again to preserve selected company in case related filters get adjusted
         preselection = 0
         if 'company_selectbox' in session:
             try:
-                preselection = int(np.where(options == session.company_selectbox)[0][0])
+                preselection = int(np.where(options == session['company_selectbox'])[0][0])
             except:
                 pass
 
