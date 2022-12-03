@@ -324,7 +324,7 @@ def run():
                 value = value[0]
                 if 'сайт' in key.casefold():
                     col2.caption(key) 
-                    col2.code(value, None)
+                    col2.markdown(f'[{value}]({value})')
                 elif 'заказчик' in key.casefold():
                     col2.subheader(value)
                 else:
