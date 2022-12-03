@@ -256,10 +256,11 @@ def company_selection(df: pd.DataFrame):
 
     with modification_container:
         left, right = st.columns(2)
-        # df.columns[1:] so that the company name is not used (its the first col)
+        # Filters for household name selection input
+        ## df.columns[1:] so that the company name is not used (its the first col)
         for idx, column in enumerate(df.columns[1:]):
             options = df[column].unique()
-            ## preselection tweak to preserve selected filter values in case related filters get adjusted
+            ### preselection tweak to preserve selected filter values in case related filters get adjusted
             cached_value_key = column+'-input'
             preselection = []
             if cached_value_key in session:
@@ -269,7 +270,7 @@ def company_selection(df: pd.DataFrame):
                             preselection.append(i)
                     except:
                         pass
-            ## display every other input field on the right column, others - on the left column
+            ### display every other input field on the right column, all the rest - on the left column
             col = left if idx % 2 == 0 else right
             user_cat_input = col.multiselect(
                 f"{column}",
