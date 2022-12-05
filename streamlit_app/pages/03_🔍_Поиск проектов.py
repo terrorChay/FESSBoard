@@ -40,7 +40,15 @@ def load_projects():
                     projects.project_end_date AS 'Дата окончания',
                     project_grades.grade AS 'Грейд',
                     project_fields.field AS 'Направление',
-                    projects.is_frozen AS 'Заморожен'
+                    CASE
+                        WHEN
+                            projects.is_frozen = 1
+                        THEN 'Заморожен'
+                        WHEN
+                            projects.is_frozen != 1 AND DAYNAME(projects.project_end_date) IS NULL
+                        THEN 'Активен'
+                        ELSE 'Завершен'
+                    END AS 'Статус'
                 FROM projects 
                 LEFT JOIN project_grades
                     ON projects.project_grade_id   = project_grades.grade_id
@@ -241,7 +249,7 @@ def run():
     df_search_applied   = search_dataframe(projects_df)
     # if search has results -> draw criteria filters and return filtered df
     if df_search_applied.shape[0]:
-        df_filters_applied  = filter_dataframe(df_search_applied, ['Заморожен'])
+        df_filters_applied  = filter_dataframe(df_search_applied)
         # if filters have results -> draw DF, download btn and analytics
         if df_filters_applied.shape[0]:
             tab1, tab2 = st.tabs(["Данные", "Аналитика"])

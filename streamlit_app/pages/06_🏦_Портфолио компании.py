@@ -40,7 +40,15 @@ def load_projects():
                     projects.project_end_date AS 'Дата окончания',
                     project_grades.grade AS 'Грейд',
                     project_fields.field AS 'Направление',
-                    projects.is_frozen AS 'Заморожен'
+                    CASE
+                        WHEN
+                            projects.is_frozen = 1
+                        THEN 'Заморожен'
+                        WHEN
+                            projects.is_frozen != 1 AND DAYNAME(projects.project_end_date) IS NULL
+                        THEN 'Активен'
+                        ELSE 'Завершен'
+                    END AS 'Статус'
                 FROM projects 
                 LEFT JOIN project_grades
                     ON projects.project_grade_id   = project_grades.grade_id
