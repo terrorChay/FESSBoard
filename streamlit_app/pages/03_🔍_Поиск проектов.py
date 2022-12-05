@@ -137,7 +137,7 @@ def search_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # Apply filters and return filtered dataset
-def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
+def filter_dataframe(df: pd.DataFrame, cols_to_ignore=[]) -> pd.DataFrame:
 
     df = df.copy()
 
