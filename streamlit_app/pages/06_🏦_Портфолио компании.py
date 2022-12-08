@@ -146,6 +146,43 @@ def load_company_data(company: str):
     return company_data_df
 
 @st.experimental_memo
+def load_students(project_ids):
+    query   =   """
+                SELECT
+                    T01.project_id AS 'ID',
+                    T0.group_id AS 'Группа',
+                    T3.student_id AS 'ID студента',
+                    CONCAT_WS(
+                        ' ',
+                        T3.student_surname,
+                        T3.student_name,
+                        T3.student_midname) AS 'Студент'
+                FROM    (SELECT projects.project_id, projects.project_company_id FROM projects) AS T01
+                LEFT JOIN   (
+                                (SELECT groups_in_projects.project_id, groups_in_projects.group_id FROM groups_in_projects) AS T0
+                                    LEFT JOIN
+                                        (SELECT groups.group_id FROM groups) AS T1
+                                            LEFT JOIN
+                                                (SELECT students_in_groups.student_id, students_in_groups.group_id FROM students_in_groups) AS T2
+                                                    LEFT JOIN
+                                                        (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname FROM students) AS T3
+                                                    ON T2.student_id = T3.student_id
+                                            ON T1.group_id = T2.group_id
+                                    ON T0.group_id = T1.group_id
+                )
+                ON T01.project_id = T0.project_id;
+                """
+    students_df = query_data(query)
+    students_df.dropna(axis=0, subset=['Группа'], inplace=True)
+    students_df.set_index('ID', drop=True, inplace=True)
+
+    students_with_company   = project_ids.merge(students_df, how='left', left_index=True, right_index=True)
+    students_with_company.dropna(subset='Студент', inplace=True)
+    students_with_company = students_with_company.groupby(['Студент'])['Студент'].count().sort_values(ascending=False).to_frame(name='Проектов с компанией').reset_index(drop=False)
+
+    return students_with_company
+
+@st.experimental_memo
 def convert_df(df: pd.DataFrame, to_excel=False):
     if to_excel:
         output = BytesIO()
@@ -323,9 +360,16 @@ def run():
     # Draw company search filters and return chosen company
     company = company_selection(projects_df)
     if company:
-        tab1, tab2 = st.tabs(['О компании', 'Проекты'])
+        tab1, tab2, tab3 = st.tabs(['О компании', 'Проекты', 'Студенты'])
+        # load info about company as a dictionary
+        company_data            = load_company_data(company).to_dict()
+        # load only projects with selected company
+        projects_with_company   = projects_df.loc[projects_df['Заказчик'] == company]
+        # load only students who had projects with selected company
+        students_with_company   = load_students(projects_with_company[['Название']])
+
+
         with tab1:
-            company_data = load_company_data(company).to_dict()
             col1, col2 = st.columns([1, 3])
             col1.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
             for key, value in company_data.items():
@@ -339,9 +383,9 @@ def run():
                     col2.text_input(label=key, value=value, disabled=True)
 
         with tab2:
-            projects_with_company_df = projects_df.loc[projects_df['Заказчик'] == company]
+
             # Draw search filters and return filtered df
-            df_search_applied   = search_dataframe(projects_with_company_df)
+            df_search_applied   = search_dataframe(projects_with_company)
             # if search has results draw dataframe and download buttons
             if df_search_applied.shape[0]:
                 st.dataframe(df_search_applied)
@@ -349,6 +393,9 @@ def run():
                 st.download_button('Скачать XLSX', data=convert_df(df_search_applied, True), file_name="fessboard_slice.xlsx")
             else:
                 st.warning('Проекты не найдены')
+        with tab3:
+            st.dataframe(students_with_company, use_container_width=True)
+
     else:
         st.warning('Выберите компанию-заказчика')
     
