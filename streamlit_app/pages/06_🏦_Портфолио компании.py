@@ -12,6 +12,7 @@ from pandas.api.types import (
     is_datetime64_any_dtype,
     is_numeric_dtype,
     is_object_dtype,
+    is_float_dtype,
 )
 import plotly.express as px
 from connectdb import mysql_conn
@@ -156,29 +157,60 @@ def load_students(project_ids):
                         ' ',
                         T3.student_surname,
                         T3.student_name,
-                        T3.student_midname) AS 'Студент'
+                        T3.student_midname) AS 'Студент',
+                    bach_name AS 'Бакалавриат',
+                    bach_reg_name AS 'Бак. регион',
+                    T3.bachelors_start_year AS 'Бак. год',
+                    mast_name AS 'Магистратура',
+                    mast_reg_name as 'Маг. регион',
+                    T3.masters_start_year AS 'Маг. год',
+                    student_statuses.student_status AS 'Статус'
                 FROM    (SELECT projects.project_id, projects.project_company_id FROM projects) AS T01
                 LEFT JOIN   (
                                 (SELECT groups_in_projects.project_id, groups_in_projects.group_id FROM groups_in_projects) AS T0
-                                    LEFT JOIN
-                                        (SELECT groups.group_id FROM groups) AS T1
-                                            LEFT JOIN
-                                                (SELECT students_in_groups.student_id, students_in_groups.group_id FROM students_in_groups) AS T2
-                                                    LEFT JOIN
-                                                        (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname FROM students) AS T3
-                                                    ON T2.student_id = T3.student_id
-                                            ON T1.group_id = T2.group_id
-                                    ON T0.group_id = T1.group_id
-                )
+
+                                        LEFT JOIN (SELECT groups.group_id FROM groups) AS T1
+                                                
+                                                LEFT JOIN (SELECT students_in_groups.student_id, students_in_groups.group_id FROM students_in_groups) AS T2
+
+                                                        LEFT JOIN (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname, students.student_status_id, students.bachelors_university_id, students.bachelors_start_year, students.masters_university_id, students.masters_start_year FROM students) AS T3
+                                                                
+                                                                LEFT JOIN student_statuses
+                                                                ON T3.student_status_id = student_statuses.student_status_id
+
+                                                                LEFT JOIN universities
+                                                                ON T3.bachelors_university_id = universities.university_id
+
+                                                                LEFT JOIN   (
+                                                                                (SELECT universities.university_id AS 'bach_id', universities.university_name AS 'bach_name', universities.university_region_id AS 'bach_reg_id' FROM universities) AS T4
+                                                                                    LEFT JOIN
+                                                                                        (SELECT regions.region_id, regions.region 'bach_reg_name', regions.is_foreign FROM regions) AS T5
+                                                                                        ON bach_reg_id = T5.region_id
+                                                                            )
+                                                                ON bach_id = T3.bachelors_university_id
+
+                                                                LEFT JOIN   (
+                                                                                (SELECT universities.university_id AS 'mast_id', universities.university_name AS 'mast_name', universities.university_region_id AS 'mast_reg_id' FROM universities) AS T6
+                                                                                    LEFT JOIN
+                                                                                        (SELECT regions.region_id, regions.region AS 'mast_reg_name', regions.is_foreign FROM regions) AS T7
+                                                                                        ON mast_reg_id = T7.region_id
+                                                                            )
+                                                                ON mast_id = T3.masters_university_id
+
+                                                        ON T2.student_id = T3.student_id
+
+                                                ON T1.group_id = T2.group_id
+
+                                        ON T0.group_id = T1.group_id
+                            )
                 ON T01.project_id = T0.project_id;
                 """
+    # get students in groups in projects
     students_df = query_data(query)
-    students_df.dropna(axis=0, subset=['Группа'], inplace=True)
     students_df.set_index('ID', drop=True, inplace=True)
 
     students_with_company   = project_ids.merge(students_df, how='left', left_index=True, right_index=True)
-    students_with_company.dropna(subset='Студент', inplace=True)
-    students_with_company = students_with_company.groupby(['Студент'])['Студент'].count().sort_values(ascending=False).to_frame(name='Проектов с компанией').reset_index(drop=False)
+    students_with_company.dropna(axis=0, subset=['Группа', 'Студент'], inplace=True)
 
     return students_with_company
 
@@ -370,20 +402,34 @@ def run():
 
 
         with tab1:
-            col1, col2 = st.columns([1, 3])
-            col1.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
+            col1, col2 = st.columns([3, 1])
+            col2.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
             for key, value in company_data.items():
                 value = value[0]
                 if 'сайт' in key.casefold():
-                    col2.caption(key) 
-                    col2.markdown(f'[{value}]({value})')
+                    col1.markdown(f'[{value}]({value})')
                 elif 'заказчик' in key.casefold():
-                    col2.subheader(value)
+                    col1.subheader(value)
                 else:
-                    col2.text_input(label=key, value=value, disabled=True)
+                    # col1.text_input(label=key, value=value, disabled=True)
+                    col1.caption(value)
 
+            # Project groups
+            unique_projects_idx = students_with_company.index.unique()
+            for project_idx in unique_projects_idx:
+                project_name = projects_with_company['Название'].loc[project_idx]
+                with st.expander(f'Проект "{project_name}"'):
+
+                    students_in_project     = students_with_company[['Группа', 'Студент', 'Бакалавриат', 'Магистратура']].loc[[project_idx]]
+                    unique_groups_idx       = students_in_project['Группа'].unique()
+                    group_counter = 0
+                    for group_idx in unique_groups_idx:
+                        st.caption(f'Группа {group_counter+1}')
+                        students_in_group   = students_in_project[students_in_project['Группа'] == group_idx].reset_index()
+                        st.dataframe(students_in_group[['Студент', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
+                          
+                        group_counter += 1
         with tab2:
-
             # Draw search filters and return filtered df
             df_search_applied   = search_dataframe(projects_with_company, label='Поиск по проектам')
             # if search has results draw dataframe and download buttons
@@ -395,7 +441,9 @@ def run():
                 st.warning('Проекты не найдены')
         with tab3:
             # Draw search filters and return filtered df
-            df_search_applied   = search_dataframe(students_with_company, label='Поиск по студентам')
+            _students_with_company = students_with_company.dropna(subset='Студент', inplace=False)
+            _students_with_company = students_with_company.groupby(['Студент'])['Студент'].count().sort_values(ascending=False).to_frame(name='Проектов с компанией').reset_index(drop=False)
+            df_search_applied   = search_dataframe(_students_with_company, label='Поиск по студентам')
             # if search has results draw dataframe and download buttons
             if df_search_applied.shape[0]:
                 st.dataframe(df_search_applied, use_container_width=True)
