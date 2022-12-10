@@ -145,8 +145,7 @@ def load_students():
 
 def main():
 
-    st.title("FESSBoard")
-    st.write(st.get_option('theme.primaryColor'))
+    st.image('/img/logo_light.png')
     projects_df = load_projects()
     students_df = load_students()
     # metrics
