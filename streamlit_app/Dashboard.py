@@ -145,7 +145,7 @@ def load_students():
 
 def main():
 
-    st.image('streamlit_app\img\logo_light.png')
+    st.image('streamlit_app/img/logo_light.png')
     projects_df = load_projects()
     students_df = load_students()
     # metrics
