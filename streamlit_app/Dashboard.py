@@ -144,8 +144,8 @@ def load_students():
     return students_df
 
 def main():
-
-    st.image('streamlit_app/img/logo_light.png')
+    logo_col, _col = st.columns([1, 6])
+    logo_col.image('streamlit_app/img/logo_light.png', use_column_width=True)
     projects_df = load_projects()
     students_df = load_students()
     # metrics
