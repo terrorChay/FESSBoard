@@ -154,7 +154,7 @@ def main():
         col1.metric('Всего проектов',   projects_df.shape[0])
         col2.metric('Всего студентов',  students_df.shape[0])
         col3.metric('Уникальных направлений', projects_df['Направление'].nunique())
-        col4.metric('Уникальный партнеров', projects_df['Заказчик'].nunique())
+        col4.metric('Уникальных партнеров', projects_df['Заказчик'].nunique())
     # first row
     with st.container():
         col1, col2, col3 = st.columns([2, 1, 1])
