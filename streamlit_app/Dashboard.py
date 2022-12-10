@@ -148,6 +148,13 @@ def main():
     st.title("FESSBoard")
     projects_df = load_projects()
     students_df = load_students()
+    # metrics
+    with st.container():
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric('Всего проектов',   projects_df.shape[0])
+        col2.metric('Всего студентов',  students_df.shape[0])
+        col3.metric('Уникальных направлений', projects_df['Направление'].nunique())
+        col4.metric('Уникальный партнеров', projects_df['Заказчик'].nunique())
     # first row
     with st.container():
         col1, col2, col3 = st.columns([2, 1, 1])
@@ -155,7 +162,6 @@ def main():
             st.subheader('Темп прироста проектов')
         with col2:
             st.subheader('Всего проектов')
-            st.metric('', projects_df.shape[0])
         with col3:
             st.subheader('Что-то еще')
 

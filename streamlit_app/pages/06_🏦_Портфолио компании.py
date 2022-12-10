@@ -147,7 +147,7 @@ def load_company_data(company: str):
     return company_data_df
 
 @st.experimental_memo
-def load_students(project_ids):
+def load_students_in_projects(project_ids):
     query   =   """
                 SELECT
                     T01.project_id AS 'ID',
@@ -398,7 +398,7 @@ def run():
         # load only projects with selected company
         projects_with_company   = projects_df.loc[projects_df['Заказчик'] == company]
         # load only students who had projects with selected company
-        students_with_company   = load_students(projects_with_company[['Название']])
+        students_with_company   = load_students_in_projects(projects_with_company[['Название']])
 
 
         with tab1:
