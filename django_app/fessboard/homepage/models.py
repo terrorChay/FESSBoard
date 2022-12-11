@@ -206,8 +206,8 @@ class Teachers(models.Model):
         managed = False
         db_table = 'teachers'
 
-    def __str__(self):
-        return "%s" % self.teacher_surname
+    # def __str__(self):
+    #     return "%s" % self.teacher_id
 
 
 class TeachersInEvents(models.Model):

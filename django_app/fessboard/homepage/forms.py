@@ -13,7 +13,7 @@ class CompaniesForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CompaniesForm, self).__init__(*args, **kwargs)
         self.fields['company_type'] = forms.ModelChoiceField(queryset=CompanyTypes.objects.all(),
-                                                             to_field_name='company_type',
+                                                             # to_field_name='company_type',
                                                              empty_label='Select company type')
         self.fields['company_sphere'] = forms.ModelChoiceField(queryset=CompanySpheres.objects.all(),
                                                              to_field_name='company_sphere',
@@ -69,8 +69,9 @@ class TeachersInProjectForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(TeachersInProjectForm, self).__init__(*args, **kwargs)
         self.fields['teacher_id'] = forms.ModelMultipleChoiceField(queryset=Teachers.objects.all(),
-                                                             # to_field_name='teacher_surname'
+                                                                   to_field_name='teacher_surname'
                                                                    )
+
 
 
 class ProjectManagersForm(forms.ModelForm):
