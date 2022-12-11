@@ -148,32 +148,38 @@ def main():
     projects_df = load_projects()
     students_df = load_students()
     # metrics
-    with st.container():
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric('Всего проектов',   projects_df.shape[0])
-        col2.metric('Всего студентов',  students_df.shape[0])
-        col3.metric('Уникальных направлений', projects_df['Направление'].nunique())
-        col4.metric('Уникальных партнеров', projects_df['Заказчик'].nunique())
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric('Всего проектов',   projects_df.shape[0])
+    col2.metric('Всего студентов',  students_df.shape[0])
+    col3.metric('Уникальных направлений', projects_df['Направление'].nunique())
+    col4.metric('Уникальных партнеров', projects_df['Заказчик'].nunique())
     # first row
-    with st.container():
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col1:
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        with st.container():
             st.subheader('Темп прироста проектов')
-        with col2:
+            
+    with col2:
+        with st.container():
             st.subheader('Всего проектов')
-        with col3:
+
+    with col3:
+        with st.container():
             st.subheader('Что-то еще')
 
     # second row
-    with st.container():
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col1:
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        with st.container():
             st.subheader('Какой-то кружок')
 
-        with col2:
+    with col2:
+        with st.container():
             st.subheader('Распределение студентов')
             st.dataframe(students_df)
-        with col3:
+
+    with col3:
+        with st.container():
             st.subheader('Какой-то график')
 
 
