@@ -130,9 +130,10 @@ def load_company_data(company: str):
                     T1.company_name AS 'Заказчик',
                     T2.company_type AS 'Тип компании',
                     T3.company_sphere AS 'Отрасль',
-                    T1.company_website AS 'Веб-сайт'
+                    T1.company_website AS 'Веб-сайт',
+                    T1.company_logo_url AS 'Логотип'
                 FROM    (
-                            (SELECT companies.company_id, companies.company_name, companies.company_type_id, companies.company_sphere_id, companies.company_website FROM companies) AS T1
+                            (SELECT companies.company_id, companies.company_name, companies.company_type_id, companies.company_sphere_id, companies.company_website, companies.company_logo_url FROM companies) AS T1
                                 LEFT JOIN 
                                     (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
                                     ON T1.company_type_id = T2.company_type_id
@@ -400,45 +401,58 @@ def run():
         # load only students who had projects with selected company
         students_with_company   = load_students_in_projects(projects_with_company[['Название']])
 
-
+        # О компании
         with tab1:
             col1, col2 = st.columns([3, 1])
-            col2.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
             for key, value in company_data.items():
+                key = key.casefold()
                 value = value[0]
-                if 'сайт' in key.casefold():
+                if 'сайт' in key:
                     col1.markdown(f'[{value}]({value})')
-                elif 'заказчик' in key.casefold():
+                elif 'логотип' in key:
+                    if len(value) > 5:
+                        col2.image(value, use_column_width=True)
+                    else:
+                        col2.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
+                elif 'заказчик' in key:
                     col1.subheader(value)
                 else:
                     # col1.text_input(label=key, value=value, disabled=True)
                     col1.caption(value)
-
-            # Project groups
-            unique_projects_idx = students_with_company.index.unique()
-            for project_idx in unique_projects_idx:
-                project_name = projects_with_company['Название'].loc[project_idx]
-                with st.expander(f'Проект "{project_name}"'):
-
-                    students_in_project     = students_with_company[['Группа', 'Студент', 'Бакалавриат', 'Магистратура']].loc[[project_idx]]
-                    unique_groups_idx       = students_in_project['Группа'].unique()
-                    group_counter = 0
-                    for group_idx in unique_groups_idx:
-                        st.caption(f'Группа {group_counter+1}')
-                        students_in_group   = students_in_project[students_in_project['Группа'] == group_idx].reset_index()
-                        st.dataframe(students_in_group[['Студент', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
-                          
-                        group_counter += 1
+        # Проекты        
         with tab2:
-            # Draw search filters and return filtered df
+            # Project groups
+            st.markdown('#### Проекты и команды')
+            unique_projects_idx = students_with_company.index.unique()
+            if len(unique_projects_idx) >= 1:
+                for project_idx in unique_projects_idx:
+                    project_name = projects_with_company['Название'].loc[project_idx]
+                    with st.expander(f'Проект "{project_name}"'):
+
+                        students_in_project     = students_with_company[['Группа', 'Студент', 'Бакалавриат', 'Магистратура']].loc[[project_idx]]
+                        unique_groups_idx       = students_in_project['Группа'].unique()
+                        group_counter = 0
+                        for group_idx in unique_groups_idx:
+                            st.caption(f'Группа {group_counter+1}')
+                            students_in_group   = students_in_project[students_in_project['Группа'] == group_idx].reset_index()
+                            st.dataframe(students_in_group[['Студент', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
+                            
+                            group_counter += 1
+            else:
+                st.warning('Проектные команды не найдены')
+            # Bulk projects export
+            st.markdown('#### Экспорт данных')
+            ## Draw search filters and return filtered df
             df_search_applied   = search_dataframe(projects_with_company, label='Поиск по проектам')
-            # if search has results draw dataframe and download buttons
+            ## if search has results draw dataframe and download buttons
             if df_search_applied.shape[0]:
                 st.dataframe(df_search_applied, use_container_width=True)
                 st.download_button('Скачать CSV', data=convert_df(df_search_applied), file_name="fessboard_slice.csv", mime='text/csv')
                 st.download_button('Скачать XLSX', data=convert_df(df_search_applied, True), file_name="fessboard_slice.xlsx")
             else:
                 st.warning('Проекты не найдены')
+
+        # Студенты
         with tab3:
             # Draw search filters and return filtered df
             _students_with_company = students_with_company.dropna(subset='Студент', inplace=False)
@@ -450,7 +464,7 @@ def run():
                 st.download_button('Скачать CSV', data=convert_df(df_search_applied), file_name="fessboard_slice.csv", mime='text/csv')
                 st.download_button('Скачать XLSX', data=convert_df(df_search_applied, True), file_name="fessboard_slice.xlsx")
             else:
-                st.warning('Проекты не найдены')
+                st.warning('Студенты не найдены')
 
     else:
         st.warning('Выберите компанию-заказчика')

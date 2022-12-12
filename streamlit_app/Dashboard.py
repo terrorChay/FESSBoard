@@ -144,7 +144,10 @@ def load_students():
     return students_df
 
 def main():
-    st.image('streamlit_app/img/logo_light.png', width=200)
+    try:
+        st.image('streamlit_app/img/logo_light.png', width=200)
+    except:
+        st.image('img/logo_light.png', width=200)
     projects_df = load_projects()
     students_df = load_students()
     # metrics
