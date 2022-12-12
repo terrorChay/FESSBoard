@@ -421,8 +421,20 @@ def run():
                     col1.caption(value)
         # Проекты        
         with tab2:
+            # Bulk projects export
+            st.markdown('#### Экспорт данных')
+            ## Draw search filters and return filtered df
+            df_search_applied   = search_dataframe(projects_with_company, label='Поиск по проектам')
+            ## if search has results draw dataframe and download buttons
+            if df_search_applied.shape[0]:
+                st.dataframe(df_search_applied, use_container_width=True)
+                col1, col2, _col3, _col4, _col5, _col6 = st.columns([0.8, 1, 1, 1, 1, 1])
+                col1.download_button('💾 CSV', data=convert_df(df_search_applied), file_name=f"{company}_slice.csv", mime='text/csv')
+                col2.download_button('💾 Excel', data=convert_df(df_search_applied, True), file_name=f"{company}_slice.xlsx")
+            else:
+                st.warning('Проекты не найдены')
             # Project groups
-            st.markdown('#### Проекты и команды')
+            st.markdown('#### Просмотр проектных команд')
             unique_projects_idx = students_with_company.index.unique()
             if len(unique_projects_idx) >= 1:
                 for project_idx in unique_projects_idx:
@@ -440,17 +452,6 @@ def run():
                             group_counter += 1
             else:
                 st.warning('Проектные команды не найдены')
-            # Bulk projects export
-            st.markdown('#### Экспорт данных')
-            ## Draw search filters and return filtered df
-            df_search_applied   = search_dataframe(projects_with_company, label='Поиск по проектам')
-            ## if search has results draw dataframe and download buttons
-            if df_search_applied.shape[0]:
-                st.dataframe(df_search_applied, use_container_width=True)
-                st.download_button('Скачать CSV', data=convert_df(df_search_applied), file_name="fessboard_slice.csv", mime='text/csv')
-                st.download_button('Скачать XLSX', data=convert_df(df_search_applied, True), file_name="fessboard_slice.xlsx")
-            else:
-                st.warning('Проекты не найдены')
 
         # Студенты
         with tab3:

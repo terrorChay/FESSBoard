@@ -255,8 +255,9 @@ def run():
             tab1, tab2 = st.tabs(["Данные", "Аналитика"])
             with tab1:
                 st.dataframe(df_filters_applied)
-                st.download_button('Скачать CSV', data=convert_df(df_filters_applied), file_name="fessboard_slice.csv", mime='text/csv')
-                st.download_button('Скачать XLSX', data=convert_df(df_filters_applied, True), file_name="fessboard_slice.xlsx")
+                col1, col2, _col3, _col4, _col5, _col6 = st.columns([0.8, 1, 1, 1, 1, 1])
+                col1.download_button('💾 CSV', data=convert_df(df_search_applied), file_name="fessboard_slice.csv", mime='text/csv')
+                col2.download_button('💾 Excel', data=convert_df(df_search_applied, True), file_name="fessboard_slice.xlsx")
             with tab2:
                 st.write('какая-то аналитика')
         else:
