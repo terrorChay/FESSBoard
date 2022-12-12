@@ -421,8 +421,6 @@ def run():
                     col1.caption(value)
         # Проекты        
         with tab2:
-            # Bulk projects export
-            st.markdown('#### Экспорт данных')
             ## Draw search filters and return filtered df
             df_search_applied   = search_dataframe(projects_with_company, label='Поиск по проектам')
             ## if search has results draw dataframe and download buttons
