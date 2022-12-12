@@ -411,7 +411,10 @@ def run():
                     col1.markdown(f'[{value}]({value})')
                 elif 'логотип' in key:
                     if len(value) > 5:
-                        col2.image(value, use_column_width=True)
+                        try:
+                            col2.image(value, use_column_width=True)
+                        except:
+                            col2.write('Логотип уехал в отпуск')
                     else:
                         col2.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
                 elif 'заказчик' in key:
