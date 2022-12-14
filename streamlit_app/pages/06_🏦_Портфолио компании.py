@@ -239,12 +239,14 @@ def run():
     if company:
         tab1, tab2, tab3 = st.tabs(['О компании', 'Проекты', 'Студенты'])
         # load info about company as a dictionary
-        company_data            = load_companies()
+        with st.spinner('Делаем однотумбовые столы...'):
+            company_data            = load_companies()
         company_data            = company_data.loc[company_data['Название компании'] == company].to_dict()
         # load only projects with selected company
         projects_with_company   = projects_df.loc[projects_df['Название компании'] == company]
         # load only students who had projects with selected company
-        students_with_company   = load_students_in_projects(projects_with_company[['Название проекта']])
+        with st.spinner('Захватываем мир...'):
+            students_with_company   = load_students_in_projects(projects_with_company[['Название проекта']])
 
         # О компании
         with tab1:
