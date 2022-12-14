@@ -1,12 +1,11 @@
 import streamlit as st
 from streamlit import session_state as session
 import streamlit_setup as setup
+from my_query import query_dict
 import pandas as pd
 import numpy as np
 import re
 from io import BytesIO
-from pyxlsb import open_workbook as open_xlsb
-import xlsxwriter
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
@@ -16,7 +15,6 @@ from pandas.api.types import (
 )
 import plotly.express as px
 from connectdb import mysql_conn
-from datetime import date
  
 # Database Query
 @st.experimental_memo(ttl=600)
@@ -28,190 +26,37 @@ def query_data(query):
 # Load projects dataset
 @st.experimental_memo
 def load_projects():
-    query_i =   """
-                SELECT
-                    projects.project_id AS 'ID',
-                    T1.company_name AS 'Заказчик',
-                    T2.company_type AS 'Тип компании',
-                    T3.company_sphere AS 'Отрасль',
-                    projects.project_name AS 'Название',
-                    projects.project_description AS 'Описание',
-                    projects.project_result AS 'Результат',
-                    projects.project_start_date AS 'Дата начала',
-                    projects.project_end_date AS 'Дата окончания',
-                    project_grades.grade AS 'Грейд',
-                    project_fields.field AS 'Направление',
-                    CASE
-                        WHEN
-                            projects.is_frozen = 1
-                        THEN 'Заморожен'
-                        WHEN
-                            projects.is_frozen != 1 AND DAYNAME(projects.project_end_date) IS NULL
-                        THEN 'Активен'
-                        ELSE 'Завершен'
-                    END AS 'Статус'
-                FROM projects 
-                LEFT JOIN project_grades
-                    ON projects.project_grade_id   = project_grades.grade_id
-                LEFT JOIN project_fields
-                    ON projects.project_field_id   = project_fields.field_id
-                LEFT JOIN   (
-                                (SELECT companies.company_id, companies.company_name, companies.company_type_id, companies.company_sphere_id FROM companies) AS T1
-                                    LEFT JOIN 
-                                        (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
-                                        ON T1.company_type_id = T2.company_type_id
-                                    LEFT JOIN
-                                        (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
-                                        ON T1.company_sphere_id = T3.company_sphere_id
-                            )
-                    ON projects.project_company_id = T1.company_id;
-                """
-    query_j =   """
-                SELECT
-                    projects.project_id AS 'ID',
-                    CONCAT_WS(
-                        ' ',
-                        T5.student_surname,
-                        T5.student_name,
-                        T5.student_midname) AS 'Менеджер проекта'
-                FROM projects 
-                LEFT JOIN   (
-                                (SELECT managers_in_projects.project_id, managers_in_projects.student_id FROM managers_in_projects) AS T4
-                                    LEFT JOIN
-                                        (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname FROM students) AS T5
-                                        ON T4.student_id = T5.student_id
-                            )
-                    ON projects.project_id = T4.project_id;
-                """
-    query_k =   """
-                SELECT
-                    projects.project_id AS 'ID',
-                    CONCAT_WS(
-                        ' ',
-                        T7.teacher_surname,
-                        T7.teacher_name,
-                        T7.teacher_midname) AS 'Курирующий преподаватель'
-                FROM projects 
-                LEFT JOIN   (
-                                (SELECT teachers_in_projects.project_id, teachers_in_projects.teacher_id FROM teachers_in_projects) AS T6
-                                    LEFT JOIN
-                                        (SELECT teachers.teacher_id, teachers.teacher_surname, teachers.teacher_name, teachers.teacher_midname FROM teachers) AS T7
-                                        ON T6.teacher_id = T7.teacher_id
-                            )
-                    ON projects.project_id = T6.project_id;
-                """
-    # Projects dataframe (no many-to-many relations)
-    projects_df = query_data(query_i)
+    # Load data from database
+    projects_df = query_data(query_dict['projects'])
+    managers_df = query_data(query_dict['managers_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
+    teachers_df = query_data(query_dict['teachers_in_projects']).merge(query_data(query_dict['teachers']), on='ID преподавателя', how='left')
 
-    # Managers dataframe (many-to-many relations)
-    managers_df = query_data(query_j)
-    managers_df.replace('', np.nan, inplace=True)
-    managers_df.dropna(inplace=True)
-    managers_df = managers_df.groupby(['ID'])['Менеджер проекта'].apply(list).reset_index()
+    # Join multiple managers and teachers into list values
+    managers_df = managers_df.groupby(['ID проекта'])['ID студента'].apply(list).reset_index()
+    teachers_df = teachers_df.groupby(['ID проекта'])['ФИО преподавателя'].apply(list).reset_index()
 
-    # Teachers dataframe (many-to-many relations)
-    teachers_df = query_data(query_k)
-    teachers_df.replace('', np.nan, inplace=True)
-    teachers_df.dropna(inplace=True)
-    teachers_df = teachers_df.groupby(['ID'])['Курирующий преподаватель'].apply(list).reset_index()
-
-    # Left join dataframes
-    projects_df = projects_df.merge(managers_df, on='ID', how='left')
-    projects_df = projects_df.merge(teachers_df, on='ID', how='left')
+    # Left join dataframes to create consolidated one
+    projects_df = projects_df.merge(managers_df, on='ID проекта', how='left')
+    projects_df = projects_df.merge(teachers_df, on='ID проекта', how='left')
 
     # Set project ID as dataframe index
-    projects_df.set_index('ID', drop=True, inplace=True)
+    projects_df.set_index('ID проекта', drop=True, inplace=True)
+    projects_df.rename(columns={'ID студента':'Менеджеры', 'ФИО преподавателя':'Преподаватели'}, inplace=True)
     return projects_df
 
 @st.experimental_memo
-def load_company_data(company: str):
-    query   =   f"""
-                SELECT
-                    T1.company_name AS 'Заказчик',
-                    T2.company_type AS 'Тип компании',
-                    T3.company_sphere AS 'Отрасль',
-                    T1.company_website AS 'Веб-сайт',
-                    T1.company_logo_url AS 'Логотип'
-                FROM    (
-                            (SELECT companies.company_id, companies.company_name, companies.company_type_id, companies.company_sphere_id, companies.company_website, companies.company_logo_url FROM companies) AS T1
-                                LEFT JOIN 
-                                    (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
-                                    ON T1.company_type_id = T2.company_type_id
-                                LEFT JOIN
-                                    (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
-                                    ON T1.company_sphere_id = T3.company_sphere_id
-                        )
-                WHERE
-                    company_name = '{company}'
-                """
-    company_data_df = query_data(query)
-    return company_data_df
+def load_companies():
+    companies_df = query_data(query_dict['companies'])
+    return companies_df
 
 @st.experimental_memo
 def load_students_in_projects(project_ids):
-    query   =   """
-                SELECT
-                    T01.project_id AS 'ID',
-                    T0.group_id AS 'Группа',
-                    T3.student_id AS 'ID студента',
-                    CONCAT_WS(
-                        ' ',
-                        T3.student_surname,
-                        T3.student_name,
-                        T3.student_midname) AS 'Студент',
-                    bach_name AS 'Бакалавриат',
-                    bach_reg_name AS 'Бак. регион',
-                    T3.bachelors_start_year AS 'Бак. год',
-                    mast_name AS 'Магистратура',
-                    mast_reg_name as 'Маг. регион',
-                    T3.masters_start_year AS 'Маг. год',
-                    student_statuses.student_status AS 'Статус'
-                FROM    (SELECT projects.project_id, projects.project_company_id FROM projects) AS T01
-                LEFT JOIN   (
-                                (SELECT groups_in_projects.project_id, groups_in_projects.group_id FROM groups_in_projects) AS T0
-
-                                        LEFT JOIN (SELECT groups.group_id FROM groups) AS T1
-                                                
-                                                LEFT JOIN (SELECT students_in_groups.student_id, students_in_groups.group_id FROM students_in_groups) AS T2
-
-                                                        LEFT JOIN (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname, students.student_status_id, students.bachelors_university_id, students.bachelors_start_year, students.masters_university_id, students.masters_start_year FROM students) AS T3
-                                                                
-                                                                LEFT JOIN student_statuses
-                                                                ON T3.student_status_id = student_statuses.student_status_id
-
-                                                                LEFT JOIN universities
-                                                                ON T3.bachelors_university_id = universities.university_id
-
-                                                                LEFT JOIN   (
-                                                                                (SELECT universities.university_id AS 'bach_id', universities.university_name AS 'bach_name', universities.university_region_id AS 'bach_reg_id' FROM universities) AS T4
-                                                                                    LEFT JOIN
-                                                                                        (SELECT regions.region_id, regions.region 'bach_reg_name', regions.is_foreign FROM regions) AS T5
-                                                                                        ON bach_reg_id = T5.region_id
-                                                                            )
-                                                                ON bach_id = T3.bachelors_university_id
-
-                                                                LEFT JOIN   (
-                                                                                (SELECT universities.university_id AS 'mast_id', universities.university_name AS 'mast_name', universities.university_region_id AS 'mast_reg_id' FROM universities) AS T6
-                                                                                    LEFT JOIN
-                                                                                        (SELECT regions.region_id, regions.region AS 'mast_reg_name', regions.is_foreign FROM regions) AS T7
-                                                                                        ON mast_reg_id = T7.region_id
-                                                                            )
-                                                                ON mast_id = T3.masters_university_id
-
-                                                        ON T2.student_id = T3.student_id
-
-                                                ON T1.group_id = T2.group_id
-
-                                        ON T0.group_id = T1.group_id
-                            )
-                ON T01.project_id = T0.project_id;
-                """
-    # get students in groups in projects
-    students_df = query_data(query)
-    students_df.set_index('ID', drop=True, inplace=True)
+    # Load data from database
+    students_df = query_data(query_dict['students_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
+    students_df.set_index('ID проекта', drop=True, inplace=True)
 
     students_with_company   = project_ids.merge(students_df, how='left', left_index=True, right_index=True)
-    students_with_company.dropna(axis=0, subset=['Группа', 'Студент'], inplace=True)
+    students_with_company.dropna(axis=0, subset=['ID группы', 'ID студента'], inplace=True)
 
     return students_with_company
 
@@ -301,7 +146,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
                     user_date_input = tuple(map(pd.to_datetime, user_date_input))
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
-            elif (is_categorical_dtype(df[column]) or df[column].nunique() < 10 or df[column].map(len).max() < 255) and ('Название' not in df[column].name):
+            elif (is_categorical_dtype(df[column]) or df[column].nunique() < 10 or df[column].map(len).max() < 255) and ('Название проекта' not in df[column].name):
                 options = df[column].unique()
                 user_cat_input = right.multiselect(
                     f"{column}",
@@ -326,12 +171,10 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
 
 # Apply filters and return company name
 def company_selection(df: pd.DataFrame):
-
-    df = df[['Заказчик', 'Тип компании', 'Отрасль']].copy()
+    df = df[['Название компании', 'Тип компании', 'Отрасль']].copy()
     company = False
 
     modification_container = st.container()
-
     with modification_container:
         left, right = st.columns(2)
         # Filters for household name selection input
@@ -358,7 +201,7 @@ def company_selection(df: pd.DataFrame):
             )
             if user_cat_input:
                 df = df[df[column].isin(user_cat_input)]
-        options = np.insert(df['Заказчик'].unique(), 0, 'Не выбрано', axis=0)
+        options = np.insert(df['Название компании'].unique(), 0, 'Не выбрано', axis=0)
 
         # Household name selection
         ## preselection tweak once again to preserve selected company in case related filters get adjusted
@@ -370,7 +213,7 @@ def company_selection(df: pd.DataFrame):
                 pass
 
         user_cat_input = st.selectbox(
-            "Заказчик",
+            "Название компании",
             options,
             index=preselection,
             key='company_selectbox',
@@ -395,18 +238,19 @@ def run():
     if company:
         tab1, tab2, tab3 = st.tabs(['О компании', 'Проекты', 'Студенты'])
         # load info about company as a dictionary
-        company_data            = load_company_data(company).to_dict()
+        company_data            = load_companies()
+        company_data            = company_data.loc[company_data['Название компании'] == company].to_dict()
         # load only projects with selected company
-        projects_with_company   = projects_df.loc[projects_df['Заказчик'] == company]
+        projects_with_company   = projects_df.loc[projects_df['Название компании'] == company]
         # load only students who had projects with selected company
-        students_with_company   = load_students_in_projects(projects_with_company[['Название']])
+        students_with_company   = load_students_in_projects(projects_with_company[['Название проекта']])
 
         # О компании
         with tab1:
             col1, col2 = st.columns([3, 1])
             for key, value in company_data.items():
                 key = key.casefold()
-                value = value[0]
+                value = list(value.values())[0]
                 if 'сайт' in key:
                     col1.markdown(f'[{value}]({value})')
                 elif 'логотип' in key:
@@ -417,8 +261,10 @@ def run():
                             col2.write('Логотип уехал в отпуск')
                     else:
                         col2.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
-                elif 'заказчик' in key:
+                elif 'название компании' in key:
                     col1.subheader(value)
+                elif 'id компании' in key:
+                    pass
                 else:
                     # col1.text_input(label=key, value=value, disabled=True)
                     col1.caption(value)
@@ -439,16 +285,16 @@ def run():
             unique_projects_idx = students_with_company.index.unique()
             if len(unique_projects_idx) >= 1:
                 for project_idx in unique_projects_idx:
-                    project_name = projects_with_company['Название'].loc[project_idx]
+                    project_name = projects_with_company['Название проекта'].loc[project_idx]
                     with st.expander(f'Проект "{project_name}"'):
 
-                        students_in_project     = students_with_company[['Группа', 'Студент', 'Бакалавриат', 'Магистратура']].loc[[project_idx]]
-                        unique_groups_idx       = students_in_project['Группа'].unique()
+                        students_in_project     = students_with_company[['ID группы', 'ФИО студента', 'Бакалавриат', 'Магистратура']].loc[[project_idx]]
+                        unique_groups_idx       = students_in_project['ID группы'].unique()
                         group_counter = 0
                         for group_idx in unique_groups_idx:
                             st.caption(f'Группа {group_counter+1}')
-                            students_in_group   = students_in_project[students_in_project['Группа'] == group_idx].reset_index()
-                            st.dataframe(students_in_group[['Студент', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
+                            students_in_group   = students_in_project[students_in_project['ID группы'] == group_idx].reset_index()
+                            st.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
                             
                             group_counter += 1
             else:
@@ -457,9 +303,10 @@ def run():
         # Студенты
         with tab3:
             # Draw search filters and return filtered df
-            _students_with_company = students_with_company.dropna(subset='Студент', inplace=False)
-            _students_with_company = students_with_company.groupby(['Студент'])['Студент'].count().sort_values(ascending=False).to_frame(name='Проектов с компанией').reset_index(drop=False)
-            df_search_applied   = search_dataframe(_students_with_company, label='Поиск по студентам')
+            _students_with_company  = students_with_company[['ID студента', 'ФИО студента']].dropna(subset='ID студента', inplace=False)
+            _projects_count         = students_with_company.groupby(['ID студента'])['ID студента'].count().sort_values(ascending=False).to_frame(name='Проектов с компанией').reset_index(drop=False)
+            projects_count          = _projects_count.merge(_students_with_company, how='left', on='ID студента').drop_duplicates()
+            df_search_applied   = search_dataframe(projects_count[['ФИО студента', 'Проектов с компанией']], label='Поиск по студентам')
             # if search has results draw dataframe and download buttons
             if df_search_applied.shape[0]:
                 st.dataframe(df_search_applied, use_container_width=True)

@@ -1,12 +1,11 @@
 import streamlit as st
-from streamlit import session_state as session
 import streamlit_setup as setup
+from my_query import query_dict
 import pandas as pd
-import numpy as np
 import re
 from io import BytesIO
-from pyxlsb import open_workbook as open_xlsb
-import xlsxwriter
+# from pyxlsb import open_workbook as open_xlsb
+# import xlsxwriter
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
@@ -15,7 +14,6 @@ from pandas.api.types import (
 )
 import plotly.express as px
 from connectdb import mysql_conn
-from datetime import date
  
  # Database Query
 @st.experimental_memo(ttl=600)
@@ -24,102 +22,25 @@ def query_data(query):
         df = pd.read_sql(query, conn)
     return df
 
-# Load projects dataset
+# Load consolidated projects dataframe
 @st.experimental_memo
 def load_projects():
-    query_i =   """
-                SELECT
-                    projects.project_id AS 'ID',
-                    T1.company_name AS 'Заказчик',
-                    T2.company_type AS 'Тип компании',
-                    T3.company_sphere AS 'Отрасль',
-                    projects.project_name AS 'Название',
-                    projects.project_description AS 'Описание',
-                    projects.project_result AS 'Результат',
-                    projects.project_start_date AS 'Дата начала',
-                    projects.project_end_date AS 'Дата окончания',
-                    project_grades.grade AS 'Грейд',
-                    project_fields.field AS 'Направление',
-                    CASE
-                        WHEN
-                            projects.is_frozen = 1
-                        THEN 'Заморожен'
-                        WHEN
-                            projects.is_frozen != 1 AND DAYNAME(projects.project_end_date) IS NULL
-                        THEN 'Активен'
-                        ELSE 'Завершен'
-                    END AS 'Статус'
-                FROM projects 
-                LEFT JOIN project_grades
-                    ON projects.project_grade_id   = project_grades.grade_id
-                LEFT JOIN project_fields
-                    ON projects.project_field_id   = project_fields.field_id
-                LEFT JOIN   (
-                                (SELECT companies.company_id, companies.company_name, companies.company_type_id, companies.company_sphere_id FROM companies) AS T1
-                                    LEFT JOIN 
-                                        (SELECT company_types.company_type_id, company_types.company_type FROM company_types) AS T2
-                                        ON T1.company_type_id = T2.company_type_id
-                                    LEFT JOIN
-                                        (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
-                                        ON T1.company_sphere_id = T3.company_sphere_id
-                            )
-                    ON projects.project_company_id = T1.company_id;
-                """
-    query_j =   """
-                SELECT
-                    projects.project_id AS 'ID проекта',
-                    CONCAT_WS(
-                        ' ',
-                        T5.student_surname,
-                        T5.student_name,
-                        T5.student_midname) AS 'ФИО менеджера'
-                FROM projects 
-                LEFT JOIN   (
-                                (SELECT managers_in_projects.project_id, managers_in_projects.student_id FROM managers_in_projects) AS T4
-                                    LEFT JOIN
-                                        (SELECT students.student_id, students.student_surname, students.student_name, students.student_midname FROM students) AS T5
-                                        ON T4.student_id = T5.student_id
-                            )
-                    ON projects.project_id = T4.project_id;
-                """
-    query_k =   """
-                SELECT
-                    projects.project_id AS 'ID',
-                    CONCAT_WS(
-                        ' ',
-                        T7.teacher_surname,
-                        T7.teacher_name,
-                        T7.teacher_midname) AS 'Курирующий преподаватель'
-                FROM projects 
-                LEFT JOIN   (
-                                (SELECT teachers_in_projects.project_id, teachers_in_projects.teacher_id FROM teachers_in_projects) AS T6
-                                    LEFT JOIN
-                                        (SELECT teachers.teacher_id, teachers.teacher_surname, teachers.teacher_name, teachers.teacher_midname FROM teachers) AS T7
-                                        ON T6.teacher_id = T7.teacher_id
-                            )
-                    ON projects.project_id = T6.project_id;
-                """
-    # Projects dataframe (no many-to-many relations)
-    projects_df = query_data(query_i)
+    # Load data from database
+    projects_df = query_data(query_dict['projects'])
+    managers_df = query_data(query_dict['managers_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
+    teachers_df = query_data(query_dict['teachers_in_projects']).merge(query_data(query_dict['teachers']), on='ID преподавателя', how='left')
 
-    # Managers dataframe (many-to-many relations)
-    managers_df = query_data(query_j)
-    managers_df.replace('', np.nan, inplace=True)
-    managers_df.dropna(inplace=True)
-    managers_df = managers_df.groupby(['ID'])['Менеджер проекта'].apply(list).reset_index()
+    # Join multiple managers and teachers into list values
+    managers_df = managers_df.groupby(['ID проекта'])['ФИО студента'].apply(list).reset_index()
+    teachers_df = teachers_df.groupby(['ID проекта'])['ФИО преподавателя'].apply(list).reset_index()
 
-    # Teachers dataframe (many-to-many relations)
-    teachers_df = query_data(query_k)
-    teachers_df.replace('', np.nan, inplace=True)
-    teachers_df.dropna(inplace=True)
-    teachers_df = teachers_df.groupby(['ID'])['Курирующий преподаватель'].apply(list).reset_index()
-
-    # Left join dataframes
-    projects_df = projects_df.merge(managers_df, on='ID', how='left')
-    projects_df = projects_df.merge(teachers_df, on='ID', how='left')
+    # Left join dataframes to create consolidated one
+    projects_df = projects_df.merge(managers_df, on='ID проекта', how='left')
+    projects_df = projects_df.merge(teachers_df, on='ID проекта', how='left')
 
     # Set project ID as dataframe index
-    projects_df.set_index('ID', drop=True, inplace=True)
+    projects_df.set_index('ID проекта', drop=True, inplace=True)
+    projects_df.rename(columns={'ФИО студента':'Менеджеры', 'ФИО преподавателя':'Преподаватели'}, inplace=True)
     return projects_df
 
 # Apply search filters and return filtered dataset
@@ -138,9 +59,7 @@ def search_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 # Apply filters and return filtered dataset
 def filter_dataframe(df: pd.DataFrame, cols_to_ignore=[]) -> pd.DataFrame:
-
     df = df.copy()
-
     # Try to convert datetimes into a standard format (datetime, no timezone)
     for col in df.columns:
         if is_object_dtype(df[col]):
@@ -151,16 +70,15 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore=[]) -> pd.DataFrame:
 
         if is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.tz_localize(None)
-    
-    modification_container = st.container()
 
+    modification_container = st.container()
     with modification_container:
         cols = [col for col in df.columns if col not in cols_to_ignore]
         to_filter_columns = st.multiselect("Параметры фильтрации", cols)
         for column in to_filter_columns:
             left, right = st.columns((1, 20))
             left.write("└")
-            if 'Менеджер' in df[column].name or 'Курирующий' in df[column].name:
+            if 'Менеджер' in df[column].name or 'Преподаватели' in df[column].name:
                 options = pd.Series([x for _list in df[column][df[column].notna()] for x in _list]).unique()
                 user_cat_input = right.multiselect(
                     f"{column}",
@@ -207,12 +125,10 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore=[]) -> pd.DataFrame:
                 )
                 if user_text_input:
                     df = df[df[column].astype(str).str.contains(user_text_input, na=False, flags=re.IGNORECASE)]
-
     # Try to convert datetimes into displayable date formats
     for col in df.columns:
         if is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.strftime('%d-%m-%Y')
-
     return df
 
 @st.experimental_memo
