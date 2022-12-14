@@ -32,7 +32,7 @@ def load_projects():
     teachers_df = query_data(query_dict['teachers_in_projects']).merge(query_data(query_dict['teachers']), on='ID преподавателя', how='left')
 
     # Join multiple managers and teachers into list values
-    managers_df = managers_df.groupby(['ID проекта'])['ID студента'].apply(list).reset_index()
+    managers_df = managers_df.groupby(['ID проекта'])['ФИО студента'].apply(list).reset_index()
     teachers_df = teachers_df.groupby(['ID проекта'])['ФИО преподавателя'].apply(list).reset_index()
 
     # Left join dataframes to create consolidated one
@@ -41,7 +41,7 @@ def load_projects():
 
     # Set project ID as dataframe index
     projects_df.set_index('ID проекта', drop=True, inplace=True)
-    projects_df.rename(columns={'ID студента':'Менеджеры', 'ФИО преподавателя':'Преподаватели'}, inplace=True)
+    projects_df.rename(columns={'ФИО студента':'Менеджеры', 'ФИО преподавателя':'Преподаватели'}, inplace=True)
     return projects_df
 
 @st.experimental_memo
