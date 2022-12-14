@@ -228,7 +228,8 @@ def run():
     # Feedback btn
     st.sidebar.button(label='Сообщить об ошибке')
     # Load dataframe
-    projects_df = load_projects()
+    with st.spinner('Изучаем SCRUM...'):
+        projects_df = load_projects()
     st.title('Портфолио компании')
     st.write('''
             #### На данной странице можно ознакомиться с портфелем проектов выбранной компании!

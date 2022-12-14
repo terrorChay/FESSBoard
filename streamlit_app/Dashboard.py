@@ -46,8 +46,11 @@ def main():
         st.image('streamlit_app/img/logo_light.png', width=200)
     except:
         st.image('img/logo_light.png', width=200)
-    projects_df = load_projects()
-    students_df = load_students()
+
+    with st.spinner('Читаем PMI и PMBOK...'):
+        projects_df = load_projects()
+    with st.spinner('Происходит аджайл...'):
+        students_df = load_students()
     # metrics
     col1, col2, col3, col4 = st.columns(4)
     col1.metric('Всего проектов',   projects_df.shape[0])

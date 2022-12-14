@@ -152,7 +152,8 @@ def run():
     # Feedback btn
     st.sidebar.button(label='Сообщить об ошибке')
     # Load dataframe
-    projects_df = load_projects()
+    with st.spinner('Поднимаем тайные архивы...'):
+        projects_df = load_projects()
     st.title('Поиск проектов')
     st.write('''
             #### На данной странице можно составить выборку проектов по заданным параметрам!
