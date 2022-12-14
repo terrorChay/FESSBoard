@@ -67,12 +67,12 @@ def load_projects():
                 """
     query_j =   """
                 SELECT
-                    projects.project_id AS 'ID',
+                    projects.project_id AS 'ID проекта',
                     CONCAT_WS(
                         ' ',
                         T5.student_surname,
                         T5.student_name,
-                        T5.student_midname) AS 'Менеджер проекта'
+                        T5.student_midname) AS 'ФИО менеджера'
                 FROM projects 
                 LEFT JOIN   (
                                 (SELECT managers_in_projects.project_id, managers_in_projects.student_id FROM managers_in_projects) AS T4
