@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 from connectdb import mysql_conn
+from datetime import datetime
 
 
 @st.experimental_memo(ttl=600)
@@ -35,11 +36,15 @@ def load_projects():
     return projects_df
 
 @st.experimental_memo
-def load_students():
+def load_students_in_projects():
     students_df = query_data(query_dict['students_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
     students_df.dropna(axis=0, subset=['ID группы'], inplace=True)
     students_df.set_index('ID проекта', drop=True, inplace=True)
     return students_df
+
+@st.experimental_memo
+def load_students():
+    return query_data(query_dict['students'])
 
 def main():
     try:
@@ -50,6 +55,8 @@ def main():
     with st.spinner('Читаем PMI и PMBOK...'):
         projects_df = load_projects()
     with st.spinner('Происходит аджайл...'):
+        students_in_projects_df = load_students_in_projects()
+    with st.spinner('Hamdulilah'):
         students_df = load_students()
     # metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -79,8 +86,27 @@ def main():
 
     with col2:
         with st.container():
-            st.subheader('Распределение студентов')
-            st.dataframe(students_df)
+            # st.subheader('Вовлеченность потока')
+            options = sorted(students_df.loc[(students_df['Бакалавриат'] == 'ФЭСН РАНХиГС')]['Бак. год'].unique(), reverse=True)
+            options = list(map(lambda x: f'{x} - {x+4}', options))
+            year = st.selectbox(label='Динамика вовлеченности потока', options=options, index=0)
+            year = int(year[:4])
+            if year:
+                m = students_df.loc[(students_df['Бак. год'] == year) & (students_df['Бакалавриат'] == 'ФЭСН РАНХиГС')]['ID студента'].nunique()
+                l = []
+                for i in range(0, 4):
+                    e = students_in_projects_df.loc[
+                            (students_in_projects_df['Бак. год'] == year)
+                        &   (students_in_projects_df['Бакалавриат'] == 'ФЭСН РАНХиГС')
+                        &   (students_in_projects_df['Дата окончания'].between(datetime.strptime(f'{year+i}-09-01', '%Y-%m-%d').date(), datetime.strptime(f'{year+i+1}-09-01', '%Y-%m-%d').date()))
+                        ]['ID студента'].nunique()
+                    # e - Кол-во уникальных студентов с потока N, приниваших участие в проектах за 1 курс
+                    l.append(e/m)
+                data = pd.Series(l, (f'1 курс ({year}-{year+1})',f'2 курс ({year+1}-{year+2})',f'3 курс ({year+2}-{year+3})',f'4 курс ({year+3}-{year+4})'))
+                fig = px.bar(data)
+                fig.update_yaxes(range = [0,1])
+                fig.update_layout(yaxis_tickformat=".0%")
+                st.plotly_chart(fig, use_container_width=True)
 
     with col3:
         with st.container():

@@ -98,9 +98,10 @@ query_dict =    {
                 "students_in_projects"  :   """
                                             SELECT
                                                 T0.project_id AS 'ID проекта',
+                                                T0.project_end_date AS 'Дата окончания',
                                                 T1.group_id AS 'ID группы',
                                                 T4.student_id AS 'ID студента'
-                                            FROM (SELECT projects.project_id FROM projects) AS T0
+                                            FROM (SELECT projects.project_id, projects.project_end_date FROM projects) AS T0
                                             LEFT JOIN   (
                                                             (SELECT groups_in_projects.project_id, groups_in_projects.group_id FROM groups_in_projects) AS T1
                                                                 LEFT JOIN
