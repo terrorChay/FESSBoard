@@ -266,7 +266,7 @@ def run():
                         col2.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
                         group_counter += 1
                 else:
-                    st.warning('Проектные команды не найдены')
+                    col2.warning('Проектные команды не найдены')
 
 
 if __name__ == "__main__":
