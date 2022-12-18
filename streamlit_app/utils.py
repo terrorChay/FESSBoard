@@ -28,7 +28,26 @@ def remove_footer():
                 </style>
                 ''', unsafe_allow_html=True)
 
+# set logo
+def set_logo(dark=False):
+    if dark:
+        logo_url = 'https://github.com/terrorChay/FESSBoard/blob/master/streamlit_app/img/logo_dark.png?raw=true'
+    else:
+        logo_url = 'https://github.com/terrorChay/FESSBoard/blob/master/streamlit_app/img/logo_light.png?raw=true'
 
+    st.markdown(
+        f"""
+        <style>
+            [data-testid="stSidebarNav"] {{
+                background-image: url({logo_url});
+                background-size: 200px;
+                background-repeat: no-repeat;
+                background-position: 20px 50px;
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # load css with external source
 def load_remote_css(url):

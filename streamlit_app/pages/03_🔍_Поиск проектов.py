@@ -1,5 +1,5 @@
 import streamlit as st
-import streamlit_setup as setup
+import utils as utils
 from my_query import query_dict
 import pandas as pd
 import re
@@ -184,6 +184,7 @@ def run():
         st.warning('Проекты не найдены')
 
 if __name__ == "__main__":
-    setup.page_config(layout='wide', title='Поиск проектов')
-    setup.remove_footer()
+    utils.page_config(layout='wide', title='Поиск проектов')
+    utils.remove_footer()
+    utils.set_logo()
     run()

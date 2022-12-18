@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit import session_state as session
-import streamlit_setup as setup
+import utils as utils
 from my_query import query_dict
 import pandas as pd
 import numpy as np
@@ -198,6 +198,13 @@ def project_selection(df: pd.DataFrame):
 
     return selected_project
 
+@st.experimental_memo
+def load_students_from_project(project_id):
+    students_df = query_data(query_dict['students_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
+    students_df.dropna(axis=0, subset=['ID группы', 'ID студента'], inplace=True)
+    students_df = students_df.loc[students_df['ID проекта'] == project_id]
+    return students_df
+
 # App launch
 def run():
     # Load dataframe
@@ -210,10 +217,60 @@ def run():
     # Draw search filters and return filtered df
     if selected_project:
         project_id = int(selected_project[:5].split(' - ')[0])
-        output = projects_df.loc[projects_df['ID проекта'] == project_id]
-        st.table(output.T)
+        output = projects_df.loc[projects_df['ID проекта'] == project_id].to_dict('records')[0]
+        # output
+        # Company name, project name and grade
+        with st.container():
+            # st.subheader(output['Название проекта'])
+            st.markdown(f"<h2 style='text-align: center;'>{output['Название проекта']}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center;'>Проект от {output['Название компании']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center;'>{output['Грейд']}</p>", unsafe_allow_html=True)
+        # Project goals and result
+        with st.container():
+            col1, col2 = st.columns(2)
+
+            col1.write('Задача проекта')
+            col1.text_area(label='Задача проекта', value=output['Описание'], disabled=True, height=200, label_visibility='collapsed')
+
+            col2.write('Результат проекта')
+            col2.text_area(label='Результат проекта', value=output['Результат'], disabled=True, height=200, label_visibility='collapsed')
+        # Project curators and team:
+        with st.container():
+            col1, col2 = st.columns(2)
+            # Project managers if none -> error
+            col1.write('Руководители проекта')
+            managers = output['Менеджеры']
+            if type(managers) != list:
+                col1.error('Не указаны')
+            else:
+                for i in managers:
+                    col1.caption(f':bust_in_silhouette: {i}')
+            # Teachers if none -> error
+            col1.write('Курирующие преподаватели')
+            teachers = output['Преподаватели']
+            if type(teachers) != list:
+                col1.error('Не указаны')
+            else:
+                for i in teachers:
+                    col1.caption(f':bust_in_silhouette: {i}')
+            # students
+            with st.spinner('Вынюхиваем...'):
+                col2.write('Студенты')
+                students = load_students_from_project(project_id)
+                unique_groups_idx = students['ID группы'].unique()
+                if len(unique_groups_idx) > 0:
+                    group_counter = 0
+                    for group_idx in unique_groups_idx:
+                        col2.caption(f'Группа {group_counter+1}')
+                        students_in_group   = students[students['ID группы'] == group_idx].reset_index()
+                        col2.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
+                        group_counter += 1
+                else:
+                    st.warning('Проектные команды не найдены')
+
 
 if __name__ == "__main__":
-    setup.page_config(layout='wide', title='Поиск проектов')
-    setup.remove_footer()
+    utils.page_config(layout='wide', title='Поиск проектов')
+    utils.remove_footer()
+    utils.set_logo()
     run()

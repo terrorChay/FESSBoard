@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit import session_state as session
-import streamlit_setup as setup
+import utils as utils
 from my_query import query_dict
 import pandas as pd
 import numpy as np
@@ -47,11 +47,6 @@ def load_students():
     return query_data(query_dict['students'])
 
 def main():
-    try:
-        st.image('streamlit_app/img/logo_light.png', width=200)
-    except:
-        st.image('img/logo_light.png', width=200)
-
     with st.spinner('Читаем PMI и PMBOK...'):
         projects_df = load_projects()
     with st.spinner('Происходит аджайл...'):
@@ -115,9 +110,10 @@ def main():
 
 if __name__ == "__main__":
     # page setup
-    setup.page_config(layout='wide', title='FESSBoard')
+    utils.page_config(layout='wide', title='FESSBoard')
     # styles
-    setup.remove_footer()
-    setup.load_local_css('styles.css')
+    utils.remove_footer()
+    utils.load_local_css('styles.css')
+    utils.set_logo()
     # main func
     main()

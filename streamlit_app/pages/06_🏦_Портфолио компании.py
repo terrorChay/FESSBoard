@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit import session_state as session
-import streamlit_setup as setup
+import utils as utils
 from my_query import query_dict
 import pandas as pd
 import numpy as np
@@ -328,6 +328,7 @@ def run():
         st.warning('Выберите компанию-заказчика')
     
 if __name__ == "__main__":
-    setup.page_config(layout='centered', title='Портфолио компании')
-    setup.remove_footer()
+    utils.page_config(layout='centered', title='Портфолио компании')
+    utils.remove_footer()
+    utils.set_logo()
     run()
