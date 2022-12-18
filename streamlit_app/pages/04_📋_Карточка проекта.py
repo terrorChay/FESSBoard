@@ -228,12 +228,12 @@ def run():
         # Project goals and result
         with st.container():
             col1, col2 = st.columns(2)
-
+            
             col1.write('Задача проекта')
-            col1.text_area(label='Задача проекта', value=output['Описание'], disabled=True, height=200, label_visibility='collapsed')
+            col1.caption(output['Описание'])
 
             col2.write('Результат проекта')
-            col2.text_area(label='Результат проекта', value=output['Результат'], disabled=True, height=200, label_visibility='collapsed')
+            col2.caption(output['Результат'])
         # Project curators and team:
         with st.container():
             col1, col2 = st.columns(2)
@@ -253,7 +253,7 @@ def run():
             else:
                 for i in teachers:
                     col1.caption(f':bust_in_silhouette: {i}')
-            # students
+            # Students in groups
             with st.spinner('Вынюхиваем...'):
                 col2.write('Студенты')
                 students = load_students_from_project(project_id)
