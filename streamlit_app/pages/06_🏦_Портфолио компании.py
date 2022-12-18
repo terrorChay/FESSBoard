@@ -248,6 +248,7 @@ def run():
         projects_with_company   = projects_df.loc[projects_df['ID компании'] == company_id]
         # load only students who had projects with selected company
         with st.spinner('Захватываем мир...'):
+            # !!!!!!!!!!!! НАДО ПЕРЕПИСАТЬ, ЧТОБЫ ПО АЙДИ ПРОЕКТА РАБОТАЛО, А НЕ НАЗВАНИЮ !!!!!!!!!!!!!!!!
             students_with_company   = load_students_in_projects(projects_with_company[['Название проекта']])
 
         # О компании
@@ -314,7 +315,7 @@ def run():
             _students_with_company  = students_with_company[['ID студента', 'ФИО студента']].dropna(subset='ID студента', inplace=False)
             _projects_count         = students_with_company.groupby(['ID студента'])['ID студента'].count().sort_values(ascending=False).to_frame(name='Проектов с компанией').reset_index(drop=False)
             projects_count          = _projects_count.merge(_students_with_company, how='left', on='ID студента').drop_duplicates()
-            df_search_applied   = search_dataframe(projects_count[['ФИО студента', 'Проектов с компанией']], label='Поиск по студентам')
+            df_search_applied       = search_dataframe(projects_count[['ФИО студента', 'Проектов с компанией']], label='Поиск по студентам')
             # if search has results draw dataframe and download buttons
             if df_search_applied.shape[0]:
                 st.dataframe(df_search_applied, use_container_width=True)

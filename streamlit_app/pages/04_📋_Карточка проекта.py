@@ -143,7 +143,6 @@ def convert_df(df: pd.DataFrame, to_excel=False):
         processed_data = df.to_csv().encode('utf-8')
     return processed_data
 
-
 # Apply filters and return company name
 def project_selection(df: pd.DataFrame):
     df = df[['ID проекта', 'Название проекта', 'Название компании', 'Грейд', 'Направление', 'Статус']].copy()
@@ -215,6 +214,6 @@ def run():
         st.table(output.T)
 
 if __name__ == "__main__":
-    setup.page_config(layout='centered', title='Поиск проектов')
+    setup.page_config(layout='wide', title='Поиск проектов')
     setup.remove_footer()
     run()
