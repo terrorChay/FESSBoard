@@ -171,7 +171,8 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
 
 # Apply filters and return company name
 def company_selection(df: pd.DataFrame):
-    df = df[['Название компании', 'Тип компании', 'Отрасль']].copy()
+    df = df[['ID компании', 'Название компании', 'Тип компании', 'Отрасль']].copy()
+    df.insert(0, 'Составной ключ', df['ID компании'].astype('str') + ' - ' + df['Название компании'])
     company = False
 
     modification_container = st.container()
@@ -179,7 +180,7 @@ def company_selection(df: pd.DataFrame):
         left, right = st.columns(2)
         # Filters for household name selection input
         ## df.columns[1:] so that the company name is not used (its the first col)
-        for idx, column in enumerate(df.columns[1:]):
+        for idx, column in enumerate(df.columns[2:]):
             options = df[column].unique()
             ### preselection tweak to preserve selected filter values in case related filters get adjusted
             cached_value_key = column+'-input'
@@ -201,7 +202,7 @@ def company_selection(df: pd.DataFrame):
             )
             if user_cat_input:
                 df = df[df[column].isin(user_cat_input)]
-        options = np.insert(df['Название компании'].unique(), 0, 'Не выбрано', axis=0)
+        options = np.insert(df['Составной ключ'].unique(), 0, 'Не выбрано', axis=0)
 
         # Household name selection
         ## preselection tweak once again to preserve selected company in case related filters get adjusted
@@ -237,40 +238,44 @@ def run():
     # Draw company search filters and return chosen company
     company = company_selection(projects_df)
     if company:
+        company_id = int(company[:5].split(' - ')[0])
         tab1, tab2, tab3 = st.tabs(['О компании', 'Проекты', 'Студенты'])
         # load info about company as a dictionary
         with st.spinner('Делаем однотумбовые столы...'):
-            company_data            = load_companies()
-        company_data            = company_data.loc[company_data['Название компании'] == company].to_dict()
+            company_data_df            = load_companies()
+        company_data_df            = company_data_df.loc[company_data_df['ID компании'] == company_id].to_dict()
         # load only projects with selected company
-        projects_with_company   = projects_df.loc[projects_df['Название компании'] == company]
+        projects_with_company   = projects_df.loc[projects_df['ID компании'] == company_id]
         # load only students who had projects with selected company
         with st.spinner('Захватываем мир...'):
             students_with_company   = load_students_in_projects(projects_with_company[['Название проекта']])
 
         # О компании
         with tab1:
-            col1, col2 = st.columns([3, 1])
-            for key, value in company_data.items():
-                key = key.casefold()
-                value = list(value.values())[0]
-                if 'сайт' in key:
-                    col1.markdown(f'[{value}]({value})')
-                elif 'логотип' in key:
-                    if len(value) > 5:
-                        try:
-                            col2.image(value, use_column_width=True)
-                        except:
-                            col2.write('Логотип уехал в отпуск')
+            try:
+                col1, col2 = st.columns([3, 1])
+                for key, value in company_data_df.items():
+                    key = key.casefold()
+                    value = list(value.values())[0]
+                    if 'сайт' in key:
+                        col1.markdown(f'[{value}]({value})')
+                    elif 'логотип' in key:
+                        if len(value) > 5:
+                            try:
+                                col2.image(value, use_column_width=True)
+                            except:
+                                col2.write('Логотип уехал в отпуск')
+                        else:
+                            col2.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
+                    elif 'название компании' in key:
+                        col1.subheader(value)
+                    elif 'id компании' in key:
+                        pass
                     else:
-                        col2.image('https://i.pinimg.com/originals/18/3e/9b/183e9bd688fe158b9141aa162c853382.jpg', use_column_width=True)
-                elif 'название компании' in key:
-                    col1.subheader(value)
-                elif 'id компании' in key:
-                    pass
-                else:
-                    # col1.text_input(label=key, value=value, disabled=True)
-                    col1.caption(value)
+                        # col1.text_input(label=key, value=value, disabled=True)
+                        col1.caption(value)
+            except:
+                st.error('Ошибка 1')
         # Проекты        
         with tab2:
             ## Draw search filters and return filtered df

@@ -2,6 +2,7 @@ query_dict =    {
                 "projects"              :   """
                                             SELECT
                                                 projects.project_id AS 'ID проекта',
+                                                T1.company_id AS 'ID компании',
                                                 T1.company_name AS 'Название компании',
                                                 T2.company_type AS 'Тип компании',
                                                 T3.company_sphere AS 'Отрасль',
@@ -148,5 +149,8 @@ query_dict =    {
                                                                 (SELECT company_spheres.company_sphere_id, company_spheres.company_sphere FROM company_spheres) AS T3
                                                                 ON T1.company_sphere_id = T3.company_sphere_id
                                                     );
+                                            """,
+                "students_in_proj_v2"   :   """
+
                                             """,
 }

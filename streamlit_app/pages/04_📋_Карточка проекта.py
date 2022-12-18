@@ -1,12 +1,11 @@
 import streamlit as st
 from streamlit import session_state as session
 import streamlit_setup as setup
+from my_query import query_dict
 import pandas as pd
 import numpy as np
 import re
 from io import BytesIO
-from pyxlsb import open_workbook as open_xlsb
-import xlsxwriter
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
@@ -27,33 +26,22 @@ def query_data(query):
 # Load projects dataset
 @st.experimental_memo
 def load_projects():
-    query   =   """
-                SELECT
-                    projects.project_id 'ID',
-                    companies.company_name 'Заказчик',
-                    company_types.company_type 'Тип компании',
-                    projects.project_name 'Название',
-                    projects.project_description 'Описание',
-                    projects.project_result 'Результат',
-                    projects.project_start_date 'Дата начала',
-                    projects.project_end_date 'Дата окончания',
-                    project_grades.grade 'Грейд',
-                    project_fields.field 'Направление',
-                    projects.is_frozen 'Заморожен'
-                FROM projects 
-                LEFT JOIN project_grades
-                    ON projects.project_grade   = project_grades.grade_id
-                LEFT JOIN project_fields
-                    ON projects.project_field   = project_fields.field_id
-                LEFT JOIN (companies
-                            LEFT JOIN company_types
-                                ON companies.company_type = company_types.company_type_id)
-                    ON projects.project_company = companies.company_id;
-                """
-    projects_df = query_data(query)
-    projects_df['Дата окончания']   = pd.to_datetime(projects_df['Дата окончания'], format='%Y-%m-%d')
-    projects_df['Дата начала']      = pd.to_datetime(projects_df['Дата начала'], format='%Y-%m-%d')
-    projects_df['ID']               = pd.to_numeric(projects_df['ID'])
+    # Load data from database
+    projects_df = query_data(query_dict['projects'])
+    managers_df = query_data(query_dict['managers_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
+    teachers_df = query_data(query_dict['teachers_in_projects']).merge(query_data(query_dict['teachers']), on='ID преподавателя', how='left')
+
+    # Join multiple managers and teachers into list values
+    managers_df = managers_df.groupby(['ID проекта'])['ФИО студента'].apply(list).reset_index()
+    teachers_df = teachers_df.groupby(['ID проекта'])['ФИО преподавателя'].apply(list).reset_index()
+
+    # Left join dataframes to create consolidated one
+    projects_df = projects_df.merge(managers_df, on='ID проекта', how='left')
+    projects_df = projects_df.merge(teachers_df, on='ID проекта', how='left')
+
+    # Set project ID as dataframe index
+    # projects_df.set_index('ID проекта', drop=True, inplace=True)
+    projects_df.rename(columns={'ФИО студента':'Менеджеры', 'ФИО преподавателя':'Преподаватели'}, inplace=True)
     return projects_df
 
 # Apply search filters and return filtered dataset
@@ -155,6 +143,62 @@ def convert_df(df: pd.DataFrame, to_excel=False):
         processed_data = df.to_csv().encode('utf-8')
     return processed_data
 
+
+# Apply filters and return company name
+def project_selection(df: pd.DataFrame):
+    df = df[['ID проекта', 'Название проекта', 'Название компании', 'Грейд', 'Направление', 'Статус']].copy()
+    df.insert(0, 'Составной ключ', df['ID проекта'].astype('str') + ' - ' + df['Название проекта'])
+    selected_project = False
+
+    modification_container = st.container()
+    with modification_container:
+        left, right = st.columns(2)
+        # Filters for project selection
+        ## df.columns[3:] so that the composite key, project id and project name are ignored
+        for idx, column in enumerate(df.columns[3:]):
+            options = df[column].unique()
+            ### preselection tweak to preserve selected filter values in case related filters get adjusted
+            cached_value_key = column+'-input'
+            preselection = []
+            if cached_value_key in session:
+                for i in session[cached_value_key]:
+                    try:
+                        if i in options:
+                            preselection.append(i)
+                    except:
+                        pass
+            ### display every other input field on the right column, all the rest - on the left column
+            col = left if idx % 2 == 0 else right
+            user_cat_input = col.multiselect(
+                f"{column}",
+                options,
+                default=preselection,
+                key=cached_value_key,
+            )
+            if user_cat_input:
+                df = df[df[column].isin(user_cat_input)]
+        options = np.insert(df['Составной ключ'].unique(), 0, 'Не выбрано', axis=0)
+
+        # Household name selection
+        ## preselection tweak once again to preserve selected company in case related filters get adjusted
+        preselection = 0
+        if 'project_selectbox' in session:
+            try:
+                preselection = int(np.where(options == session['project_selectbox'])[0][0])
+            except:
+                pass
+
+        user_cat_input = st.selectbox(
+            "Выбранный проект",
+            options,
+            index=preselection,
+            key='project_selectbox',
+        )
+        if user_cat_input and user_cat_input != 'Не выбрано':
+            selected_project = user_cat_input
+
+    return selected_project
+
 # App launch
 def run():
     # Load dataframe
@@ -163,8 +207,12 @@ def run():
     st.write('''
             #### На данной странице можно ознакомиться со всей информацией по выбранному проекту!
             ''')
+    selected_project = project_selection(projects_df)
     # Draw search filters and return filtered df
-    st.error('В разработке...')
+    if selected_project:
+        project_id = int(selected_project[:5].split(' - ')[0])
+        output = projects_df.loc[projects_df['ID проекта'] == project_id]
+        st.table(output.T)
 
 if __name__ == "__main__":
     setup.page_config(layout='centered', title='Поиск проектов')
