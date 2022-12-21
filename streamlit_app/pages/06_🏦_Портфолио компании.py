@@ -40,7 +40,7 @@ def load_projects():
     projects_df = projects_df.merge(teachers_df, on='ID проекта', how='left')
 
     # Set project ID as dataframe index
-    projects_df.set_index('ID проекта', drop=True, inplace=True)
+    # projects_df.set_index('ID проекта', drop=True, inplace=True)
     projects_df.rename(columns={'ФИО студента':'Менеджеры', 'ФИО преподавателя':'Преподаватели'}, inplace=True)
     return projects_df
 
