@@ -215,7 +215,9 @@ def run():
             ''')
     selected_project = project_selection(projects_df)
     # Draw search filters and return filtered df
-    if selected_project:
+    if not selected_project:
+        st.markdown(f"<h4 style='text-align: center;'>Выберите проект 😎</h4>", unsafe_allow_html=True)
+    else:
         project_id = int(selected_project[:5].split(' - ')[0])
         output = projects_df.loc[projects_df['ID проекта'] == project_id].to_dict('records')[0]
         # output
