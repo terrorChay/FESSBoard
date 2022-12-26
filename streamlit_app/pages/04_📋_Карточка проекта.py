@@ -231,30 +231,35 @@ def run():
         with st.container():
             left, right = st.columns(2)
             with left:
-                with st.expander('Задача проекта', True):
-                    res = output['Описание']
-                    if res != '':
-                        st.caption(res)
-                    else:
-                        st.warning('Данных нет, но вы держитесь...')
+                # with st.expander('Задача проекта', True):
+                st.write('Поставленная задача')
+                res = output['Описание']
+                if res != '':
+                    st.caption(res)
+                else:
+                    st.warning('Данных нет, но вы держитесь...')
             with right:
-                with st.expander('Результат проекта', True):
-                    res = output['Результат']
-                    if res != '':
-                        st.caption(res)
-                    else:
-                        st.warning('Данных нет, но вы держитесь...')
+                # with st.expander('Результат проекта', True):
+                st.write('Достижения')
+                res = output['Результат']
+                if res != '':
+                    st.caption(res)
+                else:
+                    st.warning('Данных нет, но вы держитесь...')
         with st.container():
             left, right = st.columns(2)
             with left:
-                with st.expander('Руководители проекта', True):
+                with st.expander('Административный персонал', True):
+                    # Managers
+                    st.caption('Менеджеры проекта')
                     managers = output['Менеджеры']
                     if type(managers) != list:
                         st.warning('Данных нет, но вы держитесь...')
                     else:
                         for i in managers:
                             st.caption(f':bust_in_silhouette: {i}')
-                with st.expander('Курирующие преподаватели', True):
+                    # Teachers
+                    st.caption('Курирующие преподаватели')
                     teachers = output['Преподаватели']
                     if type(teachers) != list:
                         st.warning('Данных нет, но вы держитесь...')
@@ -268,7 +273,7 @@ def run():
                     if len(unique_groups_idx) > 0:
                         group_counter = 0
                         for group_idx in unique_groups_idx:
-                            st.caption(f'Группа {group_counter+1}')
+                            st.caption(f'Команда {group_counter+1}')
                             students_in_group   = students[students['ID группы'] == group_idx].reset_index()
                             st.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
                             group_counter += 1
@@ -278,6 +283,7 @@ def run():
 
 if __name__ == "__main__":
     utils.page_config(layout='wide', title='Поиск проектов')
+    utils.load_local_css('css/project.css')
     utils.remove_footer()
     utils.set_logo()
     run()

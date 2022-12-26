@@ -113,7 +113,7 @@ if __name__ == "__main__":
     utils.page_config(layout='wide', title='FESSBoard')
     # styles
     utils.remove_footer()
-    utils.load_local_css('styles.css')
+    utils.load_local_css('css/main.css')
     utils.set_logo()
     # main func
     main()
