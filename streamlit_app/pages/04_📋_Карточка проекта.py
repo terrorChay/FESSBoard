@@ -224,9 +224,9 @@ def run():
         # Company name, project name and grade
         with st.container():
             # st.subheader(output['Название проекта'])
+            st.markdown(f"<p style='text-align: center;'>{output['Грейд']}</p>", unsafe_allow_html=True)
             st.markdown(f"<h2 style='text-align: center;'>{output['Название проекта']}</h2>", unsafe_allow_html=True)
             st.markdown(f"<p style='text-align: center;'>Проект от {output['Название компании']}</p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align: center;'>{output['Грейд']}</p>", unsafe_allow_html=True)
         # Project goals and result
         with st.container():
             left, right = st.columns(2)
