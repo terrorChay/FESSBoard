@@ -227,46 +227,51 @@ def run():
             st.markdown(f"<p style='text-align: center;'>{output['Грейд']}</p>", unsafe_allow_html=True)
         # Project goals and result
         with st.container():
-            col1, col2 = st.columns(2)
-            
-            col1.write('Задача проекта')
-            col1.caption(output['Описание'])
-
-            col2.write('Результат проекта')
-            col2.caption(output['Результат'])
-        # Project curators and team:
+            left, right = st.columns(2)
+            with left:
+                with st.expander('Задача проекта', True):
+                    res = output['Описание']
+                    if res != '':
+                        st.caption(res)
+                    else:
+                        st.warning('Данных нет, но вы держитесь...')
+            with right:
+                with st.expander('Результат проекта', True):
+                    res = output['Результат']
+                    if res != '':
+                        st.caption(res)
+                    else:
+                        st.warning('Данных нет, но вы держитесь...')
         with st.container():
-            col1, col2 = st.columns(2)
-            # Project managers if none -> error
-            col1.write('Руководители проекта')
-            managers = output['Менеджеры']
-            if type(managers) != list:
-                col1.error('Не указаны')
-            else:
-                for i in managers:
-                    col1.caption(f':bust_in_silhouette: {i}')
-            # Teachers if none -> error
-            col1.write('Курирующие преподаватели')
-            teachers = output['Преподаватели']
-            if type(teachers) != list:
-                col1.error('Не указаны')
-            else:
-                for i in teachers:
-                    col1.caption(f':bust_in_silhouette: {i}')
-            # Students in groups
-            with st.spinner('Вынюхиваем...'):
-                col2.write('Студенты')
-                students = load_students_from_project(project_id)
-                unique_groups_idx = students['ID группы'].unique()
-                if len(unique_groups_idx) > 0:
-                    group_counter = 0
-                    for group_idx in unique_groups_idx:
-                        col2.caption(f'Группа {group_counter+1}')
-                        students_in_group   = students[students['ID группы'] == group_idx].reset_index()
-                        col2.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
-                        group_counter += 1
-                else:
-                    col2.error('Проектные команды не найдены')
+            left, right = st.columns(2)
+            with left:
+                with st.expander('Руководители проекта', True):
+                    managers = output['Менеджеры']
+                    if type(managers) != list:
+                        st.warning('Данных нет, но вы держитесь...')
+                    else:
+                        for i in managers:
+                            st.caption(f':bust_in_silhouette: {i}')
+                with st.expander('Курирующие преподаватели', True):
+                    teachers = output['Преподаватели']
+                    if type(teachers) != list:
+                        st.warning('Данных нет, но вы держитесь...')
+                    else:
+                        for i in teachers:
+                            st.caption(f':bust_in_silhouette: {i}')
+            with right:
+                with st.expander('Проектные команды', True):
+                    students = load_students_from_project(project_id)
+                    unique_groups_idx = students['ID группы'].unique()
+                    if len(unique_groups_idx) > 0:
+                        group_counter = 0
+                        for group_idx in unique_groups_idx:
+                            st.caption(f'Группа {group_counter+1}')
+                            students_in_group   = students[students['ID группы'] == group_idx].reset_index()
+                            st.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
+                            group_counter += 1
+                    else:
+                        st.warning('Данных нет, но вы держитесь...')
 
 
 if __name__ == "__main__":
