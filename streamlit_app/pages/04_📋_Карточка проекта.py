@@ -220,14 +220,27 @@ def run():
     else:
         project_id = int(selected_project[:5].split(' - ')[0])
         output = projects_df.loc[projects_df['ID проекта'] == project_id].to_dict('records')[0]
-        # output
+        # Convert dates to day.month.Year or ... if error (nan or null or else)
+        try:
+            start_date = output['Дата начала'].strftime('%d.%m.%Y')
+        except:
+            start_date = "..."
+        try:
+            end_date = output['Дата окончания'].strftime('%d.%m.%Y')
+        except:
+            end_date = "..."
         # Company name, project name and grade
         with st.container():
             # st.subheader(output['Название проекта'])
             st.markdown(f"<hr style='height:0.1rem;'/>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='text-align: center;'>{output['Название проекта']}</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align: center;'>Проект от {output['Название компании']}</p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align: center;'>{output['Грейд']}</p>", unsafe_allow_html=True)
+            left, center, right = st.columns([1,2,1])
+            with left:
+                st.markdown(f"<i><p style='text-align: left;'>{output['Название компании']}<br>{output['Статус']}</p></i>", unsafe_allow_html=True)
+            with center:
+                st.markdown(f"<h2 style='text-align: center;'>{output['Название проекта']}</h2>", unsafe_allow_html=True)
+            with right:
+                st.markdown(f"<i><p style='text-align: right;'>{output['Направление']}<br>{output['Грейд']}</p></i>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center;'>{start_date} — {end_date}</p>", unsafe_allow_html=True)
             st.markdown(f"<hr style='height:0.1rem;'/>", unsafe_allow_html=True)
         # Project goals and result
         with st.container():
