@@ -28,6 +28,15 @@ def remove_footer():
                 </style>
                 ''', unsafe_allow_html=True)
 
+# remove table indice col
+def remove_table_indice():
+    st.markdown("""
+                <style>
+                thead tr th:first-child {display:none}
+                tbody th {display:none}
+                </style>
+                """, unsafe_allow_html=True)
+
 # set logo
 def set_logo(dark=False):
     if dark:
