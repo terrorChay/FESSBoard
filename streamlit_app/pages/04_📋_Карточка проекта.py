@@ -224,9 +224,11 @@ def run():
         # Company name, project name and grade
         with st.container():
             # st.subheader(output['Название проекта'])
-            st.markdown(f"<p style='text-align: center;'>{output['Грейд']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<hr style='height:0.1rem;'/>", unsafe_allow_html=True)
             st.markdown(f"<h2 style='text-align: center;'>{output['Название проекта']}</h2>", unsafe_allow_html=True)
             st.markdown(f"<p style='text-align: center;'>Проект от {output['Название компании']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center;'>{output['Грейд']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<hr style='height:0.1rem;'/>", unsafe_allow_html=True)
         # Project goals and result
         with st.container():
             left, right = st.columns(2)
@@ -246,39 +248,55 @@ def run():
                     st.caption(res)
                 else:
                     st.warning('Данных нет, но вы держитесь...')
+        st.markdown(f"<hr style='height:0.1rem; opacity: 0'/>", unsafe_allow_html=True)
         with st.container():
             left, right = st.columns(2)
             with left:
-                with st.expander('Административный персонал', True):
-                    # Managers
-                    st.caption('Менеджеры проекта')
-                    managers = output['Менеджеры']
-                    if type(managers) != list:
-                        st.warning('Данных нет, но вы держитесь...')
-                    else:
-                        for i in managers:
-                            st.caption(f':bust_in_silhouette: {i}')
-                    # Teachers
-                    st.caption('Курирующие преподаватели')
-                    teachers = output['Преподаватели']
-                    if type(teachers) != list:
-                        st.warning('Данных нет, но вы держитесь...')
-                    else:
-                        for i in teachers:
-                            st.caption(f':bust_in_silhouette: {i}')
+                # Managers
+                st.text('Менеджеры проекта')
+                managers = output['Менеджеры']
+                if type(managers) != list:
+                    st.warning('Данных нет, но вы держитесь...')
+                else:
+                    for i in managers:
+                        st.caption(f':bust_in_silhouette: {i}')
+                # Teachers
+                st.text('Курирующие преподаватели')
+                teachers = output['Преподаватели']
+                if type(teachers) != list:
+                    st.warning('Данных нет, но вы держитесь...')
+                else:
+                    for i in teachers:
+                        st.caption(f':bust_in_silhouette: {i}')
             with right:
-                with st.expander('Проектные команды', True):
-                    students = load_students_from_project(project_id)
-                    unique_groups_idx = students['ID группы'].unique()
-                    if len(unique_groups_idx) > 0:
-                        group_counter = 0
-                        for group_idx in unique_groups_idx:
-                            st.caption(f'Команда {group_counter+1}')
-                            students_in_group   = students[students['ID группы'] == group_idx].reset_index()
-                            st.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
-                            group_counter += 1
-                    else:
-                        st.warning('Данных нет, но вы держитесь...')
+                students = load_students_from_project(project_id)
+                unique_groups_idx = students['ID группы'].unique()
+                if len(unique_groups_idx) > 0:
+                    group_counter = 0
+                    for group_idx in unique_groups_idx:
+                        st.text(f'Проектная команда {group_counter+1}')
+                        students_in_group   = students[['ФИО студента', 'isCurator']][students['ID группы'] == group_idx]
+                        for i in students_in_group.values:
+                            if i[1] == 1:
+                                st.caption(f':bust_in_silhouette: {i[0]} (Куратор)')
+                            else:
+                                st.caption(f':bust_in_silhouette: {i[0]}')
+                        # st.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
+                        group_counter += 1
+                else:
+                    st.warning('Данных нет, но вы держитесь...')
+            # with st.expander('Экспорт участников', True):
+            #     students = load_students_from_project(project_id)
+            #     unique_groups_idx = students['ID группы'].unique()
+            #     if len(unique_groups_idx) > 0:
+            #         group_counter = 0
+            #         for group_idx in unique_groups_idx:
+            #             st.caption(f'Команда {group_counter+1}')
+            #             students_in_group   = students[students['ID группы'] == group_idx].reset_index()
+            #             st.dataframe(students_in_group[['ФИО студента', 'Бакалавриат', 'Магистратура']], use_container_width=True)    
+            #             group_counter += 1
+            #     else:
+            #         st.warning('Данных нет, но вы держитесь...')
 
 
 if __name__ == "__main__":

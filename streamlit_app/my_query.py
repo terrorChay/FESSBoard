@@ -53,7 +53,7 @@ query_dict =    {
                                                     ELSE 0
                                                 END AS 'isManager',
                                                 CASE
-                                                    WHEN students.student_id in (SELECT groups.curator_student_id FROM groups)
+                                                    WHEN students.student_id in (SELECT students_in_projects.student_id FROM students_in_projects WHERE students_in_projects.is_curator = 1)
                                                     THEN 1
                                                     ELSE 0
                                                 END AS 'isCurator',
@@ -101,21 +101,11 @@ query_dict =    {
                                                 T0.project_id AS 'ID проекта',
                                                 T0.project_end_date AS 'Дата окончания',
                                                 T1.group_id AS 'ID группы',
-                                                T4.student_id AS 'ID студента'
+                                                T1.student_id AS 'ID студента',
+                                                T1.is_curator AS 'Куратор'
                                             FROM (SELECT projects.project_id, projects.project_end_date FROM projects) AS T0
-                                            LEFT JOIN   (
-                                                            (SELECT groups_in_projects.project_id, groups_in_projects.group_id FROM groups_in_projects) AS T1
-                                                                LEFT JOIN
-                                                                    (SELECT groups.group_id FROM groups) AS T2
-                                                                        LEFT JOIN
-                                                                            (SELECT students_in_groups.student_id, students_in_groups.group_id FROM students_in_groups) AS T3
-                                                                                LEFT JOIN
-                                                                                    (SELECT students.student_id FROM students) AS T4
-                                                                                ON T3.student_id = T4.student_id
-                                                                        ON T2.group_id = T3.group_id
-                                                                ON T1.group_id = T2.group_id
-                                            )
-                                            ON T0.project_id = T1.project_id;
+                                            LEFT JOIN   (SELECT students_in_projects.project_id, students_in_projects.group_id, students_in_projects.student_id, students_in_projects.is_curator FROM students_in_projects) AS T1
+                                                ON T0.project_id = T1.project_id;
                                             """, 
 
                 "managers_in_projects"  :   """
