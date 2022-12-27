@@ -235,12 +235,12 @@ def run():
             st.markdown(f"<hr style='height:0.1rem;'/>", unsafe_allow_html=True)
             left, center, right = st.columns([1,2,1])
             with left:
-                st.markdown(f"<i><p style='text-align: left;'>{output['Название компании']}<br>{output['Статус']}</p></i>", unsafe_allow_html=True)
+                st.markdown(f"<i><p style='text-align: left;'>{output['Название компании']}<br>{output['Тип компании']}</p></i>", unsafe_allow_html=True)
             with center:
                 st.markdown(f"<h2 style='text-align: center;'>{output['Название проекта']}</h2>", unsafe_allow_html=True)
             with right:
                 st.markdown(f"<i><p style='text-align: right;'>{output['Направление']}<br>{output['Грейд']}</p></i>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align: center;'>{start_date} — {end_date}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center;'>{start_date} — {end_date} // {output['Статус']}</p>", unsafe_allow_html=True)
             st.markdown(f"<hr style='height:0.1rem;'/>", unsafe_allow_html=True)
         # Project goals and result
         with st.container():
