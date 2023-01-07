@@ -17,14 +17,14 @@ import plotly.express as px
 from connectdb import mysql_conn
  
 # Database Query
-@st.experimental_memo(ttl=600)
+@st.experimental_memo(ttl=600, show_spinner=False)
 def query_data(query):
     with mysql_conn() as conn:
         df = pd.read_sql(query, conn)
     return df
 
 # Load projects dataset
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_projects():
     # Load data from database
     projects_df = query_data(query_dict['projects'])
@@ -44,12 +44,12 @@ def load_projects():
     projects_df.rename(columns={'ФИО студента':'Менеджеры', 'ФИО преподавателя':'Преподаватели'}, inplace=True)
     return projects_df
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_companies():
     companies_df = query_data(query_dict['companies'])
     return companies_df
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_students_in_projects(project_ids):
     # Load data from database
     students_df = query_data(query_dict['students_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
@@ -60,7 +60,7 @@ def load_students_in_projects(project_ids):
 
     return students_with_company
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def convert_df(df: pd.DataFrame, to_excel=False):
     if to_excel:
         output = BytesIO()

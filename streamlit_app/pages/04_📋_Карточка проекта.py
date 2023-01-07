@@ -17,14 +17,14 @@ from connectdb import mysql_conn
 from datetime import date
  
  # Database Query
-@st.experimental_memo(ttl=600)
+@st.experimental_memo(ttl=600, show_spinner=False)
 def query_data(query):
     with mysql_conn() as conn:
         df = pd.read_sql(query, conn)
     return df
 
 # Load projects dataset
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_projects():
     # Load data from database
     projects_df = query_data(query_dict['projects'])
@@ -127,7 +127,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
 
     return df
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def convert_df(df: pd.DataFrame, to_excel=False):
     if to_excel:
         output = BytesIO()
@@ -198,7 +198,7 @@ def project_selection(df: pd.DataFrame):
 
     return selected_project
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_students_from_project(project_id):
     students_df = query_data(query_dict['students_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
     students_df.dropna(axis=0, subset=['ID группы', 'ID студента'], inplace=True)
