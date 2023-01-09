@@ -9,13 +9,13 @@ from connectdb import mysql_conn
 from datetime import datetime
 
 
-@st.experimental_memo(ttl=600)
+@st.experimental_memo(ttl=600, show_spinner=False)
 def query_data(query):
     with mysql_conn() as conn:
         df = pd.read_sql(query, conn)
     return df
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_projects():
     # Load data from database
     projects_df = query_data(query_dict['projects'])
@@ -35,14 +35,14 @@ def load_projects():
     projects_df.rename(columns={'ФИО студента':'Менеджеры', 'ФИО преподавателя':'Преподаватели'}, inplace=True)
     return projects_df
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_students_in_projects():
     students_df = query_data(query_dict['students_in_projects']).merge(query_data(query_dict['students']), on='ID студента', how='left')
     students_df.dropna(axis=0, subset=['ID группы'], inplace=True)
     students_df.set_index('ID проекта', drop=True, inplace=True)
     return students_df
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_students():
     return query_data(query_dict['students'])
 
@@ -51,7 +51,7 @@ def main():
         projects_df = load_projects()
     with st.spinner('Происходит аджайл...'):
         students_in_projects_df = load_students_in_projects()
-    with st.spinner('Hamdulilah'):
+    with st.spinner('Изучаем требования стейкхолдеров...'):
         students_df = load_students()
     # metrics
     col1, col2, col3, col4 = st.columns(4)

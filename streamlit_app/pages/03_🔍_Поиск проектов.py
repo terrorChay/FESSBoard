@@ -16,14 +16,14 @@ import plotly.express as px
 from connectdb import mysql_conn
  
  # Database Query
-@st.experimental_memo(ttl=600)
+@st.experimental_memo(ttl=600, show_spinner=False)
 def query_data(query):
     with mysql_conn() as conn:
         df = pd.read_sql(query, conn)
     return df
 
 # Load consolidated projects dataframe
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def load_projects():
     # Load data from database
     projects_df = query_data(query_dict['projects'])
@@ -131,7 +131,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore=[]) -> pd.DataFrame:
             df[col] = df[col].dt.strftime('%d-%m-%Y')
     return df
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def convert_df(df: pd.DataFrame, to_excel=False):
     if to_excel:
         output = BytesIO()
