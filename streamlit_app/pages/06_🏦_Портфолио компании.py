@@ -171,7 +171,7 @@ def filter_dataframe(df: pd.DataFrame, cols_to_ignore: list) -> pd.DataFrame:
 
 # Apply filters and return company name
 def company_selection(df: pd.DataFrame):
-    df = df[['ID компании', 'Название компании', 'Тип компании', 'Отрасль']].copy()
+    df = df[['ID компании', 'Название компании', 'Тип компании', 'Отрасль', 'Грейд']].copy()
     df.insert(0, 'Составной ключ', df['ID компании'].astype('str') + ' - ' + df['Название компании'])
     company = False
 
